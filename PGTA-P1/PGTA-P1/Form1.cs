@@ -16,8 +16,7 @@ namespace PGTA_P1
         {
             InitializeComponent();
             
-            DeCod.DecodificarDataBlocks("asterix_cat10");
-            CatLib[] Categories = DeCod.CarregarCategories();
+            DeCod.DecodificarDataBlocks("asterix_cat10", DeCod.CarregarCategories());
 
         }
     }

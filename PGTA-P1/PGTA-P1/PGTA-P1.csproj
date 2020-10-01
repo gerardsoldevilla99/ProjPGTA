@@ -107,6 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ArxiusBin\DataItems.txt" />
+    <Content Include="ArxiusBin\Explicació gràfica Decodificació.JPG" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

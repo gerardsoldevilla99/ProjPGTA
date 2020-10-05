@@ -28,13 +28,33 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            this.PGB1 = new System.Windows.Forms.ProgressBar();
+            this.SuspendLayout();
+            // 
+            // PGB1
+            // 
+            this.PGB1.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.PGB1.Location = new System.Drawing.Point(12, 416);
+            this.PGB1.Name = "PGB1";
+            this.PGB1.Size = new System.Drawing.Size(776, 22);
+            this.PGB1.TabIndex = 0;
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.PGB1);
+            this.Name = "Form1";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load);
+            this.ResumeLayout(false);
+
         }
 
         #endregion
+
+        private System.Windows.Forms.ProgressBar PGB1;
     }
 }
 

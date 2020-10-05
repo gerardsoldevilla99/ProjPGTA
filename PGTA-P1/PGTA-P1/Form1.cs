@@ -16,13 +16,16 @@ namespace PGTA_P1
         public Form1()
         {
             InitializeComponent();
+            PGB1.Minimum = 1;
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
-            PGB1.Minimum = 1;
-            byte[] Bytes = File.ReadAllBytes("201002-lebl-080001_smr_mlat_adsb.ast"); //vector bytes todos juntos, sin separar ni nada
+            //byte[] Bytes = File.ReadAllBytes("201002-lebl-080001_smr_mlat_adsb.ast"); //vector bytes todos juntos, sin separar ni nada
+            byte[] Bytes = File.ReadAllBytes("201002-lebl-080001_adsb.ast"); //vector bytes todos juntos, sin separar ni nada
+            CatLib[] Cat = Hertz_Hülsmeyer.CarregarCategories();
             PGB1.Maximum = Bytes.Count();
+            int H = 0; //Contador delements no inscrits a CAT10 i CAT21
 
             List<DataBlock> DataBlockList = new List<DataBlock>();//lista con paquetes separados
 
@@ -45,13 +48,21 @@ namespace PGTA_P1
                 //Si es de la categoria desitjada l'enllistem a la llista general
                 if ((CAT == "10") || (CAT == "21"))
                 {
-                    DataBlockList.Add(new DataBlock(DataBlock, Hertz_Hülsmeyer.CarregarCategories())); //Afegim a la llista general
+                    DataBlockList.Add(new DataBlock(DataBlock, Cat)); //Afegim a la llista general
                 }
+                else
+                {
+                    H++;
+                }
+                    
+
 
                 i = i + j;
                 PGB1.Step = j;
                 PGB1.PerformStep();
             }
+
+            i = 0;
         }
     }
 }

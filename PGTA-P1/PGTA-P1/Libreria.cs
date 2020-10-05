@@ -505,48 +505,6 @@ namespace PGTA_P1
         /// </summary>
         /// <param name="Input"></param> Nom arxiu .bin .ast
         /// <returns></returns>
-        public static List<DataBlock> DecodificarDataBlocksV1(string Input, CatLib[] Categories)
-        {
-            byte[] Bytes = File.ReadAllBytes(Input); //vector bytes todos juntos, sin separar ni nada
-            
-            List<DataBlock> DataBlockList = new List<DataBlock>();//lista con paquetes separados
-
-            /*
-             * Buscarem les capcaleres de les categories (10 o 21), allà començarem una llista amb tots els bytes d'un paquet.
-             * Quan tornem a trobar un capçal de categoria la llista es tancara i s'afagira a la llista general. Repetirem el procediment.
-             */
-            Queue<byte> DataBlock = new Queue<byte>();
-
-            int i = 0;
-
-            while (i < Bytes.Count())
-            {
-                string ByteString = Convert.ToString(Bytes[i], 2).PadLeft(8, '0');
-                if ((ByteString == "00001010")||(ByteString == "00010101")) //Primer condició cat10, segona cat21
-                {
-                    //Mai tindrem una longitud inferior a 3, aqui ho comprovem. També mirem que el FSPEL sigui de com a minim 8.
-                    if ((Bytes[i + 1] == Convert.ToByte(0)) && (Bytes[i + 2] > Convert.ToByte(3)) && Bytes[i+3] >= Convert.ToByte(8)) 
-                    {
-                        DataBlockList.Add(new DataBlock(DataBlock,Categories)); //Afegim a la llista general
-                        DataBlock = new Queue<byte>(); //Reset
-                    }
-
-                    
-                }
-                DataBlock.Enqueue(Bytes[i]); //Afegim a la llista local
-                i++;
-            }
-            DataBlockList.Add(new DataBlock(DataBlock,Categories));
-            DataBlockList.RemoveAt(0); //Eliminar primera posició ja que es nula.
-
-            return DataBlockList;
-        }
-
-        /// <summary>
-        /// Retorna una llista de DataBlocks extrets de l'arxiu proporcionat.
-        /// </summary>
-        /// <param name="Input"></param> Nom arxiu .bin .ast
-        /// <returns></returns>
         public static List<DataBlock> DecodificarDataBlocksV2(string Input, CatLib[] Categories)
         {
             byte[] Bytes = File.ReadAllBytes(Input); //vector bytes todos juntos, sin separar ni nada
@@ -645,7 +603,11 @@ namespace PGTA_P1
             double RHO_Dec = BitConverter.ToDouble(RHO,6);
             double Theta_Dec = BitConverter.ToDouble(Theta, 0);
         }
+
+
     }
+
+
 
     
 }

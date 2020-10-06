@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace PGTA_P1
 {
-    /// <summary>
-    /// Representació d'un data block
-    /// </summary>
+    //Representació del DataBlock
     public class DataBlock
     {
         List<byte> Original = new List<byte>();
@@ -22,10 +23,7 @@ namespace PGTA_P1
         CatLib ItemsCatInfo;
         string From; //ADS-B, SMR, otro
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="Bytes"></param>
+        //A part de construir el DataBlock s'encarrega de repartir la info binaria en cada DataField
         public DataBlock(Queue<byte> Bytes, CatLib[] Categories)
         {
             if (Bytes.Count != 0)
@@ -143,9 +141,7 @@ namespace PGTA_P1
             }
         }
 
-        /// <summary>
-        /// Extreu dels DataFields l'origen de tot el block.
-        /// </summary>
+        //A partir del DataField adecuat obté l'origen del DataBlock
         private void GetFrom()
         {
             int c = DataFields.Count();
@@ -174,9 +170,7 @@ namespace PGTA_P1
         }
     }
 
-    /// <summary>
-    /// representació d'un data field, decodificacio dels missatges
-    /// </summary>
+    //Representació del DataField
     public class DataField
     {
         public DataItem Info = new DataItem();
@@ -184,6 +178,7 @@ namespace PGTA_P1
 
         public List<string> DeCode = new List<string>();
 
+        //Decodifica el DataField a partir de la cadena de octets rebuda. 
         public void Decodificar()
         {
             if (Info.DataItemID[0] == "I010")
@@ -261,7 +256,7 @@ namespace PGTA_P1
 
                     //CHN
                     string CHN = "" + bitsOctet[4] + "";
-                    if(CHN == "0")
+                    if (CHN == "0")
                         DeCode.Add("CHN: Chain 1");
                     else
                         DeCode.Add("CHN: Chain 2");
@@ -312,7 +307,7 @@ namespace PGTA_P1
                         string LOP = "" + bitsOctet[3] + "" + bitsOctet[4] + "";
                         if (RAB == "00")
                             DeCode.Add("LOP: Undetermined");
-                        else if(RAB== "01")
+                        else if (RAB == "01")
                             DeCode.Add("LOP: Loop start");
                         else
                             DeCode.Add("LOP: Loop finish");
@@ -360,54 +355,423 @@ namespace PGTA_P1
 
                     DeCode.Add(Convert.ToString(RHO_Dec));
                     DeCode.Add(Convert.ToString(Theta_Dec_Grad));
+
+                    this.Info.units.Add("m");
+                    this.Info.units.Add("º");
                 }
                 else if (Info.DataItemID[1] == "041")
                 {
                     //Item 041 Position in WGS-84 Co-ordinates  
-                }
+                    byte[] Lat = new byte[4];
+                    byte[] Lon = new byte[4];
+                    Lat[3] = Octets.Dequeue();
+                    Lat[2] = Octets.Dequeue();
+                    Lat[1] = Octets.Dequeue();
+                    Lat[0] = Octets.Dequeue();
+                    Lon[3] = Octets.Dequeue();
+                    Lon[2] = Octets.Dequeue();
+                    Lon[1] = Octets.Dequeue();
+                    Lon[0] = Octets.Dequeue();
+
+                    string LatS = "" + Convert.ToString(Lat[3], 2).PadLeft(8, '0') + "" + Convert.ToString(Lat[2], 2).PadLeft(8, '0') + "" + Convert.ToString(Lat[1], 2).PadLeft(8, '0') + "" + Convert.ToString(Lat[0], 2).PadLeft(8, '0') + "";
+                    char[] LatC = LatS.ToCharArray();
+                    string LonS = "" + Convert.ToString(Lon[3], 2).PadLeft(8, '0') + "" + Convert.ToString(Lon[2], 2).PadLeft(8, '0') + "" + Convert.ToString(Lon[1], 2).PadLeft(8, '0') + "" + Convert.ToString(Lon[0], 2).PadLeft(8, '0') + "";
+                    char[] LonC = LonS.ToCharArray();
+
+                    ////LAT
+                    //if (LatC[0] == '0') //Positiu
+                    //{
+                    //    int ByteInt = BitConverter.ToInt32(Lat, 0);
+                    //    double LatD = ByteInt * (180 / 2 ^ 31);
+                    //    DeCode.Add(Convert.ToString(LatD));
+                    //}
+                    //else //Negatiu
+                    //{
+                    //    //Transformem el rastre string de 0 a 1
+                    //    int i = 0;
+                    //    while (i < LatC.Length)
+                    //    {
+                    //        if (LatC[i] == '1')
+                    //            LatC[i] = '0';
+                    //        else
+                    //            LatC[i] = '1';
+                    //        i++;
+                    //    }
+
+                    //    //Obtenirm el numero Binari-Decimal per fer les operacions
+                    //    i = 0; int BY = 3;
+                    //    while (i < LatC.Length)
+                    //    {
+                    //        char[] NewString = new char[8];
+                    //        int j = 0;
+                    //        while (j < 7)
+                    //        {
+                    //            NewString[j] = LatC[i+j];
+                    //            j++;
+                    //        }
+                    //        Lat[BY] = Convert.ToByte(NewString.ToString());
+                    //        i = i + j;
+                    //        BY--;
+                    //    }
+
+                    //    int ByteInt = BitConverter.ToInt32(Lat, 0);
+                    //    double LatD = -1*ByteInt * (180 / 2 ^ 31);
+                    //    DeCode.Add(Convert.ToString(LatD));
+                    //}
+
+                    ////LON
+                    //if (LonC[0] == '0') //Positiu
+                    //{
+                    //    int ByteInt = BitConverter.ToInt32(Lon, 0);
+                    //    double LonD = ByteInt * (180 / 2 ^ 31);
+                    //    DeCode.Add(Convert.ToString(LonD));
+                    //}
+                    //else //Negatiu
+                    //{
+                    //    //Transformem el rastre string de 0 a 1
+                    //    int i = 0;
+                    //    while (i < LonC.Length)
+                    //    {
+                    //        if (LonC[i] == '1')
+                    //            LonC[i] = '0';
+                    //        else
+                    //            LonC[i] = '1';
+                    //        i++;
+                    //    }
+
+                    //    //Obtenirm el numero Binari-Decimal per fer les operacions
+                    //    i = 0; int BY = 3;
+                    //    while (i < LonC.Length)
+                    //    {
+                    //        char[] NewString = new char[8];
+                    //        int j = 0;
+                    //        while (j < 7)
+                    //        {
+                    //            NewString[j] = LonC[i + j];
+                    //            j++;
+                    //        }
+                    //        Lon[BY] = Convert.ToByte(NewString.ToString());
+                    //        i = i + j;
+                    //        BY--;
+                    //    }
+
+                    //    int ByteInt = BitConverter.ToInt32(Lon, 0);
+                    //    double LonD = -1*ByteInt * (180 / 2 ^ 31);
+                    //    DeCode.Add(Convert.ToString(LonD));
+                    //}
+                } //NO TEST (BAD)
                 else if (Info.DataItemID[1] == "042")
                 {
                     //Item 042 Position in Cartesian Co-ordinates  
-                }
+                    byte[] Xc = new byte[2];
+                    byte[] Yc = new byte[2];
+                    Xc[1] = Octets.Dequeue();
+                    Xc[0] = Octets.Dequeue();
+                    Yc[1] = Octets.Dequeue();
+                    Yc[0] = Octets.Dequeue();
+
+                    int ByteInt = BitConverter.ToInt16(Xc, 0);
+                    DeCode.Add(Convert.ToString(ByteInt));
+                    ByteInt = BitConverter.ToInt16(Yc, 0);
+                    DeCode.Add(Convert.ToString(ByteInt));
+
+                    this.Info.units.Add("m");
+                    this.Info.units.Add("m");
+                } 
                 else if (Info.DataItemID[1] == "060")
                 {
                     //Item 060 Mode-3/A Code in Octal Representation 
+                    string DataOctet = "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
+                    char[] bitsOctet = DataOctet.ToCharArray();
+
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("V: Code validated");
+                    else
+                        DeCode.Add("V: Code not validated");
+
+                    if (bitsOctet[1] == '0')
+                        DeCode.Add("G: Default");
+                    else
+                        DeCode.Add("G: Garbled code");
+
+                    if (bitsOctet[2] == '0')
+                        DeCode.Add("L: Mode-3/A code derived from the reply of the transponder");
+                    else
+                        DeCode.Add("L: Mode-3/A code not extracted during the last scan");
+
+                    int i = 4;
+                    char[] Reply = new char[12];
+                    while (i < bitsOctet.Length)
+                    {
+                        Reply[i - 4] = bitsOctet[i];
+                        i++;
+                    }
+                    DeCode.Add(Reply.ToString());
                 }
                 else if (Info.DataItemID[1] == "090")
                 {
                     //Item 090, Flight Level in Binary Representation 
+                    string DataOctet = "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
+                    char[] bitsOctet = DataOctet.ToCharArray();
+
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("V: Code validated");
+                    else
+                        DeCode.Add("V: Code not validated");
+
+                    if (bitsOctet[1] == '0')
+                        DeCode.Add("G: Default");
+                    else
+                        DeCode.Add("G: Garbled code");
+
+                    int i = 2;
+                    char[] BitSuperior = new char[8];
+                    BitSuperior[0] = '0';
+                    BitSuperior[1] = '0';
+                    while (i < 8)
+                    {
+                        BitSuperior[i] = bitsOctet[i];
+                        i++;
+                    }
+                    int j = 0;
+                    char[] BitInferior = new char[8];
+                    while (j < 8)
+                    {
+                        BitInferior[j] = bitsOctet[i];
+                        i++; j++;
+                    }
+
+                    byte[] bitsOctetB = new byte[2];
+                    bitsOctetB[1] = Convert.ToByte(new string(BitSuperior), 2);
+                    bitsOctetB[0] = Convert.ToByte(new string(BitInferior), 2);
+                    int FL = BitConverter.ToInt16(bitsOctetB, 0);
+                    double FlFin = FL * 1 / 4;
+                    DeCode.Add(Convert.ToString(FlFin));
+
+                    this.Info.units.Add("FL");
                 }
                 else if (Info.DataItemID[1] == "091")
                 {
                     //Item 091, Measured Height
-                }
+                    byte[] Hgh = new byte[2];
+                    Hgh[1] = Octets.Dequeue();
+                    Hgh[0] = Octets.Dequeue();
+
+                    int Hgh_Dec = BitConverter.ToInt16(Hgh, 0);
+                    double Hgh_ft = Hgh_Dec * 6.25;
+                    DeCode.Add(Convert.ToString(Hgh_ft));
+
+                    this.Info.units.Add("FL");
+                } //NO TEST
                 else if (Info.DataItemID[1] == "131")
                 {
                     //Item 131, Amplitude of Primary Plot
-                }
+                    int PAM = Convert.ToInt32(Octets.Dequeue());
+                    DeCode.Add(Convert.ToString(PAM));
+
+                } //NO TEST
                 else if (Info.DataItemID[1] == "140")
                 {
                     //Item 140, Time of Day 
+                    byte[] Time = new byte[4];
+                    Time[3] = 0;
+                    Time[2] = Octets.Dequeue();
+                    Time[1] = Octets.Dequeue();
+                    Time[0] = Octets.Dequeue();
+
+                    int Time_Dec = BitConverter.ToInt32(Time, 0);
+                    double Time_S = Convert.ToDouble(Time_Dec) / 128;
+                    DeCode.Add(Convert.ToString(Time_S));
+
+                    this.Info.units.Add("s (UTC, form midnight)");
                 }
                 else if (Info.DataItemID[1] == "161")
                 {
                     //Item 161, Track Number 
+                    byte[] TN = new byte[2];
+                    TN[1] = Octets.Dequeue();
+                    TN[0] = Octets.Dequeue();
+
+                    int TN_Dec = BitConverter.ToInt16(TN, 0);
+                    DeCode.Add(Convert.ToString(TN_Dec));
                 }
                 else if (Info.DataItemID[1] == "170")
                 {
                     //Item 170, Track Status 
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+
+                    //CNF
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("CNF: Confirmed track");
+                    else
+                        DeCode.Add("CNF: Track in initialisation phase");
+
+                    //TRE
+                    if (bitsOctet[1] == '0')
+                        DeCode.Add("TRE: Default");
+                    else
+                        DeCode.Add("TRE: Last report for a track");
+
+                    //CST
+                    string CST = "" + bitsOctet[2] + "" + bitsOctet[3] + "";
+                    if (CST == "00")
+                        DeCode.Add("CST: No extrapolation");
+                    else if (CST == "01")
+                        DeCode.Add("CST: Predictable extrapolation due to sensor refresh period");
+                    else if (CST == "10")
+                        DeCode.Add("CST: Predictable extrapolation in masked area");
+                    else
+                        DeCode.Add("CST: Extrapolation due to unpredictable absence of detection");
+
+                    //MAH
+                    if (bitsOctet[4] == '0')
+                        DeCode.Add("MAH: Default");
+                    else
+                        DeCode.Add("MAH: Horizontal manoeuvre");
+
+                    //TCC
+                    if (bitsOctet[5] == '0')
+                        DeCode.Add("TCC: Tracking performed in 'Sensor Plane', i.e. neither slant range correction nor projection was applied.");
+                    else
+                        DeCode.Add("TCC: Slant range correction and a suitable projection technique are used to track in a 2D.reference plane, tangential to the earth model at the Sensor Site co - ordinates.");
+
+                    //STH 
+                    if (bitsOctet[6] == '0')
+                        DeCode.Add("STH: Measured position");
+                    else
+                        DeCode.Add("STH: Smoothed position");
+
+                    //FX
+                    string FX = "" + bitsOctet[7] + "";
+                    if (FX == "1")
+                    {
+                        DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                        bitsOctet = DataOctet.ToCharArray();
+
+                        //TOM
+                        string TOM = "" + bitsOctet[0] + "" + bitsOctet[1] + "";
+                        if (TOM == "00")
+                            DeCode.Add("TOM: Unknown type of movement");
+                        else if (TOM == "01")
+                            DeCode.Add("TOM: Taking-off");
+                        else if (TOM == "10")
+                            DeCode.Add("TOM: Landing");
+                        else
+                            DeCode.Add("TOM: Other types of movement");
+
+                        //DOU
+                        string DOU = "" + bitsOctet[2] + "" + bitsOctet[3] + "" + bitsOctet[4] + "";
+                        if (DOU == "000")
+                            DeCode.Add("DOU: No doubt");
+                        else if (DOU == "001")
+                            DeCode.Add("DOU: Doubtful correlation (undetermined reason)");
+                        else if (DOU == "010")
+                            DeCode.Add("DOU: Doubtful correlation in clutter");
+                        else if (DOU == "011")
+                            DeCode.Add("DOU: Loss of accuracy");
+                        else if (DOU == "100")
+                            DeCode.Add("DOU: Loss of accuracy in clutter");
+                        else if (DOU == "101")
+                            DeCode.Add("DOU: Unstable track");
+                        else if (DOU == "101")
+                            DeCode.Add("DOU: Previously coasted");
+
+                        //MRS
+                        string MRS = "" + bitsOctet[5] + "" + bitsOctet[6] + "";
+                        if (MRS == "00")
+                            DeCode.Add("MRS: Merge or split indication undetermined");
+                        else if (MRS == "01")
+                            DeCode.Add("MRS: Track merged by association to plot");
+                        else if (MRS == "10")
+                            DeCode.Add("MRS: Track merged by non-association to plot");
+                        else
+                            DeCode.Add("MRS: Split track");
+
+                        //FX
+                        FX = "" + bitsOctet[7] + "";
+                        if (FX == "1")
+                        {
+                            DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                            bitsOctet = DataOctet.ToCharArray();
+
+                            //GHO
+                            if(bitsOctet[0] == 0)
+                                DeCode.Add("GHO: Default");
+                            else
+                                DeCode.Add("GHO: Ghost track");
+                        }
+                    }
                 }
                 else if (Info.DataItemID[1] == "200")
                 {
                     //Item 200, Calculated Track Velocity in Polar Co-ordinates
+                    byte[] Gs = new byte[2];
+                    byte[] Ta = new byte[4];
+                    Gs[1] = Octets.Dequeue();
+                    Gs[0] = Octets.Dequeue();
+                    Ta[3] = 0;
+                    Ta[2] = 0;
+                    Ta[1] = Octets.Dequeue();
+                    Ta[0] = Octets.Dequeue();
+
+                    int Gs_Dec = BitConverter.ToInt16(Gs, 0);
+                    double Gs_Kt = Gs_Dec * 0.22;
+                    DeCode.Add(Convert.ToString(Gs_Dec));
+
+                    int Ta_Dec = BitConverter.ToInt32(Ta, 0);
+                    double Ta_Grad = Ta_Dec * 0.0055;
+                    DeCode.Add(Convert.ToString(Ta_Grad));
+
+                    this.Info.units.Add("kt");
+                    this.Info.units.Add("º");
                 }
                 else if (Info.DataItemID[1] == "202")
                 {
                     //Item 202, Calculated Track Velocity in Cartesian Co-ordinates 
+                    byte[] Xc = new byte[2];
+                    byte[] Yc = new byte[2];
+                    Xc[1] = Octets.Dequeue();
+                    Xc[0] = Octets.Dequeue();
+                    Yc[1] = Octets.Dequeue();
+                    Yc[0] = Octets.Dequeue();
+
+                    int ByteInt = BitConverter.ToInt16(Xc, 0);
+                    DeCode.Add(Convert.ToString(ByteInt*0.25));
+                    ByteInt = BitConverter.ToInt16(Yc, 0);
+                    DeCode.Add(Convert.ToString(ByteInt*0.25));
+
+                    this.Info.units.Add("m/s");
+                    this.Info.units.Add("m/s");
                 }
                 else if (Info.DataItemID[1] == "210")
                 {
                     //Item 210, Calculated Acceleration 
+                    byte Ax = Octets.Dequeue();
+                    byte Ay = Octets.Dequeue();
+
+                    int Ax_Dec;
+                    if (Ax > 255 / 2)
+                    {
+                        Ax_Dec = -1 * (255 + 1) + Ax;
+                    }
+                    else
+                        Ax_Dec = Ax;
+                    double Ax_ms = Ax_Dec * 0.25;
+                    DeCode.Add(Convert.ToString(Ax_ms));
+
+                    int Ay_Dec;
+                    if (Ay > 255 / 2)
+                    {
+                        Ay_Dec = -1 * (255 + 1) + Ay;
+                    }
+                    else
+                        Ay_Dec = Ay;
+                    double Ay_ms = Ay_Dec * 0.25;
+                    DeCode.Add(Convert.ToString(Ay_ms));
+
+                    this.Info.units.Add("m/s^2");
+                    this.Info.units.Add("m/s^2");
                 }
                 else if (Info.DataItemID[1] == "220")
                 {
@@ -453,9 +817,7 @@ namespace PGTA_P1
         }
     }
 
-    /// <summary>
-    /// Representació d'un data item (caràcter identificatiu)
-    /// </summary>
+    //Representació del DataItem
     public class DataItem
     {
         public int FRN;
@@ -464,13 +826,10 @@ namespace PGTA_P1
         public string Nom;
         public int Len; // 1+ = 0; 1+2n o 1+8n = 102 o 108
 
+        public List<string> units = new List<string>(); //Si expresa algun tipus de valor, les unitats al mateix index que el valor
         public DataItem()
         { }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="Lin"></param>
         public DataItem(string[] Lin)
         {
             FRN = Convert.ToInt32(Lin[0]);
@@ -481,9 +840,7 @@ namespace PGTA_P1
         }
     }
 
-    /// <summary>
-    /// Representació d'una categoria (conté els diferents data items de cada cat)
-    /// </summary>
+    //Llibreria amb informació de cada DataItem
     public class CatLib
     {
         public int Num;
@@ -495,54 +852,9 @@ namespace PGTA_P1
         }
     }
 
-    /// <summary>
-    /// Seqüéncia de decodificació.
-    /// </summary>
+    //A la espera de ser obsolet
     public class Hertz_Hülsmeyer
     {
-        /// <summary>
-        /// Retorna una llista de DataBlocks extrets de l'arxiu proporcionat.
-        /// </summary>
-        /// <param name="Input"></param> Nom arxiu .bin .ast
-        /// <returns></returns>
-        public static List<DataBlock> DecodificarDataBlocksV2(string Input, CatLib[] Categories)
-        {
-            byte[] Bytes = File.ReadAllBytes(Input); //vector bytes todos juntos, sin separar ni nada
-            List<DataBlock> DataBlockList = new List<DataBlock>();//lista con paquetes separados
-
-            int i = 0;
-            while (i < Bytes.Count())
-            {
-                //Obtenirm dades inicials del block
-                string CAT = Bytes[i].ToString();
-                int Long = Convert.ToInt32(Bytes[i+2].ToString());
-                Queue<byte> DataBlock = new Queue<byte>();
-
-                //Introduim tots els bytes dins d'una queue per crear el DataBlock
-                int j = 0;
-                while (j < Long)
-                {
-                    DataBlock.Enqueue(Bytes[j+i]); //Afegim a la llista local
-                    j++;
-                }
-
-                //Si es de la categoria desitjada l'enllistem a la llista general
-                if((CAT == "10")||(CAT == "21"))
-                {
-                    DataBlockList.Add(new DataBlock(DataBlock, Categories)); //Afegim a la llista general
-                    DataBlock = new Queue<byte>();
-                }
-
-                i = i + j;
-            }
-
-            return DataBlockList;
-        }
-
-        /// <summary>
-        /// Carrega la info de les categories amb els seus Items i ho retorna en un vector.
-        /// </summary>
-        /// <returns></returns>
         public static CatLib[] CarregarCategories()
         {
             try
@@ -578,10 +890,6 @@ namespace PGTA_P1
             }
         }
 
-        /// <summary>
-        /// Test
-        /// </summary>
-        /// <param name="Data"></param>
         public static void test()
         {
             //DataBlock Test = new DataBlock(Data[0]);
@@ -589,19 +897,15 @@ namespace PGTA_P1
             //byte[] A = new byte[2];
             //A[1] = Convert.ToByte("00000001");
             //A[0] = Convert.ToByte(0);
-
+            //byte[] A = new byte[2];
+            //A[1] = Convert.ToByte("11111000",2);
+            //A[0] = Convert.ToByte("00110000",2);
             //int Fin = BitConverter.ToInt16(A, 0);
-            //
+            //"0101111\0"
 
-            byte[] RHO = new byte[8];
-            byte[] Theta = new byte[2];
-            RHO[6] = Convert.ToByte(15);
-            RHO[7] = Convert.ToByte(55);
-            //Theta[1] = Octets.Dequeue();
-            //Theta[0] = Octets.Dequeue();
-
-            double RHO_Dec = BitConverter.ToDouble(RHO,6);
-            double Theta_Dec = BitConverter.ToDouble(Theta, 0);
+            //byte As = new byte();
+            //string g = "10110001";
+            //As = Convert.ToByte(g);
         }
 
 

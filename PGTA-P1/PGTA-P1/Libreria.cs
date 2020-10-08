@@ -827,6 +827,7 @@ namespace PGTA_P1
         public int Len; // 1+ = 0; 1+2n o 1+8n = 102 o 108
 
         public List<string> units = new List<string>(); //Si expresa algun tipus de valor, les unitats al mateix index que el valor
+
         public DataItem()
         { }
 

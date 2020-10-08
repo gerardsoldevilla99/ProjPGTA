@@ -36,20 +36,20 @@ namespace PGTA_P1
                 //Obtenirm dades inicials del block
                 string CAT = Bytes[i].ToString();
                 int Long = Convert.ToInt32(Bytes[i + 2].ToString());
-                Queue<byte> DataBlock = new Queue<byte>();
+                Queue<byte> BytesSave = new Queue<byte>();
 
                 //Introduim tots els bytes dins d'una queue per crear el DataBlock
                 int j = 0;
                 while (j < Long)
                 {
-                    DataBlock.Enqueue(Bytes[j + i]); //Afegim a la llista local
+                    BytesSave.Enqueue(Bytes[j + i]); //Afegim a la llista local
                     j++;
                 }
 
                 //Si es de la categoria desitjada l'enllistem a la llista general
                 if ((CAT == "10") || (CAT == "21"))
                 {
-                    DataBlockList.Add(new DataBlock(DataBlock, Cat)); //Afegim a la llista general
+                    DataBlockList.Add(new DataBlock(BytesSave, Cat)); //Afegim a la llista general
                 }
                 else
                 {

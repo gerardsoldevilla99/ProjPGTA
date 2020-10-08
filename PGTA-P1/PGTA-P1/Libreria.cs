@@ -774,7 +774,6 @@ namespace PGTA_P1
                     this.Info.units.Add("m/s^2");
                 }
                 else if (Info.DataItemID[1] == "220")
-                else if (Info.DataItemID[1] == "220")
                 {
                     //Item 220, Target Address
                     byte[] TA = new byte[4];

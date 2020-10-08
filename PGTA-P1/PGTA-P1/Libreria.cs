@@ -813,6 +813,29 @@ namespace PGTA_P1
             else
             {
                 //Categoria 021
+                if (Info.DataItemID[1] == "008")
+                {
+                    //Item 008, Aircraft Operational Status
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+
+                    //RA
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("RA: TCAS II or ACAS RA not active");
+                    else
+                        DeCode.Add("RA: TCAS RA active");
+
+                    //TC
+                    string TC = "" + bitsOctet[1] + "" + bitsOctet[2] + "";
+                    if(TC == "00")
+                        DeCode.Add("TC: no capability for Trajectory Change Reports");
+                    else if (TC == "01")
+                        DeCode.Add("TC: support for TC+0 reports only");
+                    else if (TC == "10")
+                        DeCode.Add("TC: support for multiple TC reports");
+                    else
+                        DeCode.Add("TC: reserved");
+                }
             }
         }
     }

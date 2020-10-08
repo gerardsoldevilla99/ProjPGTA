@@ -774,12 +774,52 @@ namespace PGTA_P1
                     this.Info.units.Add("m/s^2");
                 }
                 else if (Info.DataItemID[1] == "220")
+                else if (Info.DataItemID[1] == "220")
                 {
                     //Item 220, Target Address
+                    byte[] TA = new byte[4];
+                    TA[3] = 0;
+                    TA[2] = Octets.Dequeue();
+                    TA[1] = Octets.Dequeue();
+                    TA[0] = Octets.Dequeue();
+
+                    int TA_Dec = BitConverter.ToInt32(TA, 0);
+                    DeCode.Add(Convert.ToString(TA_Dec));
                 }
                 else if (Info.DataItemID[1] == "245")
                 {
                     //Item 245, Target Identification
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+
+                    //STI
+                    string STI = "" + bitsOctet[0] + "" + bitsOctet[1] + "";
+                    if (STI == "00")
+                        DeCode.Add("STI: Callsign or registration downlinked from transponder");
+                    else if (STI == "01")
+                        DeCode.Add("STI: Callsign not downlinked from transponder ");
+                    else
+                        DeCode.Add("STI: Callsign not downlinked from transponder ");
+
+                    //TarID
+                    char[] TarID = new char[8];
+                    DataOctet = "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
+                    bitsOctet = DataOctet.ToCharArray();
+                    int i = 0; int h = 0;
+                    while (i < 8)
+                    {
+                        int X = 0;
+                        while (X < 6)
+                        {
+                            byte b65 = Convert.ToByte("" + bitsOctet[h] + "" + bitsOctet[h + 1] + "", 2);
+                            byte b4321 = Convert.ToByte("" + bitsOctet[h + 2] + "" + bitsOctet[h + 3] + "" + bitsOctet[h + 4] + "" + bitsOctet[h + 5] + "", 2);
+                        }
+                        h = h + 6;
+                        i++;
+                    }
+
+
+
                 }
                 else if (Info.DataItemID[1] == "250")
                 {

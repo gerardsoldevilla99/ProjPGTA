@@ -141,8 +141,7 @@ namespace PGTA_P1
             }
         }
 
-        //A partir del DataField adecuat obté l'origen del DataBlock
-
+        //A partir del DataField adecuat obté l'origen del DataBloc
         private void GetFrom()
         {
             int c = DataFields.Count();

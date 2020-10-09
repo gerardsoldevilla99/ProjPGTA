@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
+using System.IO.Ports;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.VisualBasic;
 
 namespace PGTA_P1
 {
@@ -1035,7 +1038,8 @@ namespace PGTA_P1
                     RP[0] = Octets.Dequeue();
                     RP[1] = 00000000;
                     int RP_Dec = BitConverter.ToInt16(RP, 0);
-                    DeCode.Add("RP=" + Convert.ToString(RP_Dec));
+                    DeCode.Add(Convert.ToString(RP_Dec));
+
                 }
                 // 020, Emitter Category
                 else if (Info.DataItemID[1] == "020")
@@ -1234,10 +1238,39 @@ namespace PGTA_P1
                     double TMRP_Dou = Convert.ToDouble(TMRP_Dec) / 128;
                     DeCode.Add(Convert.ToString(TMRP_Dou));
                 }
-                //074, Time of Message Reception of Position–High Precision
-                //Inacabado, esta mal planteado
+
                 else if (Info.DataItemID[1] == "074")
                 {
+                    //074, Time of Message Reception of Position–High Precision
+                    byte dequeed = Octets.Dequeue();
+                    string FSI_str = Convert.ToString(dequeed);
+                    char[] FSI_vec = FSI_str.ToCharArray();
+                    string FSI = Convert.ToString("" + FSI_vec[0] + "" + FSI_vec[1] + "");
+                    if (FSI == "11")
+                        DeCode.Add("FSI: Reserved");
+                    if (FSI == "10")
+                        DeCode.Add("TOMRp whole seconds = (I021 / 073) Whole seconds – 1");
+                    if (FSI == "01")
+                        DeCode.Add("TOMRp whole seconds = (I021 / 073) Whole seconds + 1");
+                    else
+                        DeCode.Add("TOMRp whole seconds = (I021 / 073) Whole seconds");
+
+                    FSI_vec[0] = '0';
+                    FSI_vec[1] = '0';
+
+                    byte[] TOMRPh = new byte[4];
+                    string s = Convert.ToString(FSI_vec);
+                    TOMRPh[3] = Convert.ToByte(s);
+                    TOMRPh[2] = Octets.Dequeue();
+
+                    TOMRPh[1] = Octets.Dequeue();
+                    TOMRPh[0] = Octets.Dequeue();
+                    int TOMRPh_Dec = (BitConverter.ToInt32(TOMRPh, 0)) / (2 ^ 30);
+                    DeCode.Add(Convert.ToString(TOMRPh_Dec));
+                    this.Info.units.Add("s");
+
+
+
                     string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
                     char[] bitsOctet = DataOctet.ToCharArray();
                     string FSI = "" + bitsOctet[0] + "" + bitsOctet[1] + "";
@@ -1264,7 +1297,159 @@ namespace PGTA_P1
 
 
                 }
-                //DeCode.Add("");
+                else if (Info.DataItemID[1] == "075")
+                {
+                    //075, Time of Message Reception for Velocity
+                    byte[] TMRV = new byte[4];
+
+                    TMRV[3] = 0;
+                    TMRV[2] = Octets.Dequeue();
+                    TMRV[1] = Octets.Dequeue();
+                    TMRV[0] = Octets.Dequeue();
+
+                    int TMRV_Dec = (BitConverter.ToInt32(TMRV, 0)) / 128;
+                    DeCode.Add(Convert.ToString(TMRV_Dec));
+                    this.Info.units.Add("s");
+
+                }
+                else if (Info.DataItemID[1] == "076")
+                {
+                    //076, Time of Message Reception of Velocity–High Precision 
+                    byte dequeed = Octets.Dequeue();
+                    string FSI_str = Convert.ToString(dequeed);
+                    char[] FSI_vec = FSI_str.ToCharArray();
+                    string FSI = Convert.ToString("" + FSI_vec[0] + "" + FSI_vec[1] + "");
+                    if (FSI == "11")
+                        DeCode.Add("FSI: Reserved");
+                    if (FSI == "10")
+                        DeCode.Add("TOMRp whole seconds = (I021 / 075) Whole seconds – 1");
+                    if (FSI == "01")
+                        DeCode.Add("TOMRp whole seconds = (I021 / 075) Whole seconds + 1");
+                    else
+                        DeCode.Add("TOMRp whole seconds = (I021 / 075) Whole seconds");
+
+                    FSI_vec[0] = '0';
+                    FSI_vec[1] = '0';
+
+                    byte[] TOMRVh = new byte[4];
+                    string s = Convert.ToString(FSI_vec);
+                    TOMRVh[3] = Convert.ToByte(s);
+                    TOMRVh[2] = Octets.Dequeue();
+
+                    TOMRVh[1] = Octets.Dequeue();
+                    TOMRVh[0] = Octets.Dequeue();
+                    int TOMRVh_Dec = (BitConverter.ToInt32(TOMRVh, 0)) / (2 ^ 30);
+                    DeCode.Add(Convert.ToString(TOMRVh_Dec));
+                    this.Info.units.Add("s");
+                }
+
+                else if (Info.DataItemID[1] == "077")
+                {
+                    //077, Time of ASTERIX Report Transmission 
+                    byte[] TART = new byte[4];
+
+                    TART[3] = 0;
+                    TART[2] = Octets.Dequeue();
+                    TART[1] = Octets.Dequeue();
+                    TART[0] = Octets.Dequeue();
+
+                    int TART_Dec = (BitConverter.ToInt32(TART, 0)) / 128;
+                    DeCode.Add(Convert.ToString(TART_Dec));
+                    this.Info.units.Add("s");
+                }
+                else if (Info.DataItemID[1] == "080")
+                {
+                    //080, Target Address
+                    string TAT = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0')+""+ Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + ""+Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
+                    DeCode.Add(TAT);
+                    DeCode.Add(Convert.ToString(Conversion.Hex(TAT)));
+                }
+
+                else if (Info.DataItemID[1] == "090")
+                {
+                    //090, Quality Indicators
+                    string dataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] dataVec = dataOctet.ToCharArray();
+                    DeCode.Add((Convert.ToInt32("" + dataVec[0] + "" + dataVec[1] + "" + dataVec[2] + ""),2).ToString());
+                    DeCode.Add((Convert.ToInt32("" + dataVec[3] + "" + dataVec[4] + "" + dataVec[5] + "" + dataVec[6] + ""),2).ToString());
+                    if (dataVec[7] == '0')
+                    { }
+                    else
+                    {
+                        dataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                        dataVec = dataOctet.ToCharArray();
+                        DeCode.Add((Convert.ToInt32("" + dataVec[0] + "")).ToString());
+                        DeCode.Add((Convert.ToInt32("" + dataVec[1] + "" + dataVec[2] + ""),2).ToString());
+                        DeCode.Add((Convert.ToInt32("" + dataVec[3] + "" + dataVec[4] + "" + dataVec[5] + "" + dataVec[6] + ""),2).ToString());
+                        if (dataVec[7] == '0')
+                        {
+
+                        }
+                        else
+                        {
+                            dataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                            dataVec = dataOctet.ToCharArray();
+                            if (dataVec[2] == '0')
+                                DeCode.Add("SIL: measured per flight-hour");
+                            else
+                                DeCode.Add("measured per sample");
+                            DeCode.Add((Convert.ToInt32("" + dataVec[3] + "" + dataVec[4] + ""),2).ToString());
+                            DeCode.Add((Convert.ToInt32("" + dataVec[5] + "" + dataVec[6] + ""),2).ToString());
+                            if (dataVec[7] == 0)
+                            { }
+                            else
+                            {
+                                dataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                                dataVec = dataOctet.ToCharArray();
+                                int PIC = Convert.ToInt16(("" + dataVec[0] + "" + dataVec[1] + "" + "" + dataVec[2] + "" + dataVec[3] + ""),2);
+                                if (PIC == 14)
+                                    DeCode.Add("< 0.004 NM");
+                                if (PIC == 13)
+                                    DeCode.Add("< 0.0013 NM");
+                                if (PIC == 12)
+                                    DeCode.Add("< 0.04 NM");
+                                if (PIC == 11)
+                                    DeCode.Add("< 0.1 NM");
+                                if (PIC == 10)
+                                    DeCode.Add("< 0.2 NM");
+                                if (PIC == 9)
+                                    DeCode.Add("< 0.3 NM");
+                                if (PIC == 8)
+                                    DeCode.Add("< 0.5 NM");
+                                if (PIC == 7)
+                                    DeCode.Add("< 0.6 NM");
+                                if (PIC == 6)
+                                    DeCode.Add("< 1.0 NM");
+                                if (PIC == 5)
+                                    DeCode.Add("< 2.0 NM");
+                                if (PIC == 4)
+                                    DeCode.Add("< 4.0 NM");
+                                if (PIC == 3)
+                                    DeCode.Add("< 8.0 NM");
+                                if (PIC == 2)
+                                    DeCode.Add("< 10.0 NM");
+                                if (PIC == 1)
+                                    DeCode.Add("< 20.0 NM");
+                                if (PIC == 0)
+                                    DeCode.Add("No integrity (or > 20.0 NM) ");
+                                else
+                                { }
+                                if (dataVec[7]==0)
+                                { }
+                                else { }
+
+                            }
+
+
+                        }
+
+                    }
+
+
+
+                }
+
+
             }
         }
     }

@@ -594,7 +594,7 @@ namespace PGTA_P1
 
                     int TN_Dec = BitConverter.ToInt16(TN, 0);
                     DeCode.Add(Convert.ToString(TN_Dec));
-                }
+                } 
                 else if (Info.DataItemID[1] == "170")
                 {
                     //Item 170, Track Status 
@@ -804,29 +804,129 @@ namespace PGTA_P1
                     char[] TarID = new char[8];
                     DataOctet = "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
                     bitsOctet = DataOctet.ToCharArray();
-                    int i = 0; int h = 0;
+
+                    int i = 0; int h = 0;int k = 1;
                     while (i < 8)
                     {
-                        int X = 0;
-                        while (X < 6)
-                        {
-                            byte b65 = Convert.ToByte("" + bitsOctet[h] + "" + bitsOctet[h + 1] + "", 2);
-                            byte b4321 = Convert.ToByte("" + bitsOctet[h + 2] + "" + bitsOctet[h + 3] + "" + bitsOctet[h + 4] + "" + bitsOctet[h + 5] + "", 2);
-                        }
-                        h = h + 6;
-                        i++;
-                    }
+                        byte b65 = Convert.ToByte("" + bitsOctet[h] + "" + bitsOctet[h + 1] + "", 2);
+                        byte b4321 = Convert.ToByte("" + bitsOctet[h + 2] + "" + bitsOctet[h + 3] + "" + bitsOctet[h + 4] + "" + bitsOctet[h + 5] + "", 2);
 
-                    //FUCK GITHUB
-                    //MALDITASEA
+                        //F1: Num o Ll
+                        if (b65 == 3)
+                        {
+                            //Num
+                            string b = Convert.ToString(b4321);
+                            TarID[i] = Convert.ToChar(b);
+                        }
+                        else if (b65 == 2)
+                        {
+                            char[] Save = TarID;
+                            TarID = new Char[8-k];
+                            int y = 0;
+                            while (y < TarID.Length)
+                            {
+                                TarID[y] = Save[y];
+                                y++;
+                            }
+                            k++;
+                        }
+                        else
+                        {
+                            //Ll
+                            if (b65 == 0)
+                            {
+                                if (b4321 == 1)
+                                    TarID[i] = 'A';
+                                else if (b4321 == 2)
+                                    TarID[i] = 'B';
+                                else if (b4321 == 3)
+                                    TarID[i] = 'C';
+                                else if (b4321 == 4)
+                                    TarID[i] = 'D';
+                                else if (b4321 == 5)
+                                    TarID[i] = 'E';
+                                else if (b4321 == 6)
+                                    TarID[i] = 'F';
+                                else if (b4321 == 7)
+                                    TarID[i] = 'G';
+                                else if (b4321 == 8)
+                                    TarID[i] = 'H';
+                                else if (b4321 == 9)
+                                    TarID[i] = 'I';
+                                else if (b4321 == 10)
+                                    TarID[i] = 'J';
+                                else if (b4321 == 11)
+                                    TarID[i] = 'K';
+                                else if (b4321 == 12)
+                                    TarID[i] = 'L';
+                                else if (b4321 == 13)
+                                    TarID[i] = 'M';
+                                else if (b4321 == 14)
+                                    TarID[i] = 'N';
+                                else if (b4321 == 15)
+                                    TarID[i] = '0';
+                            }
+                            else
+                            {
+                                if (b4321 == 0)
+                                    TarID[i] = 'P';
+                                else if (b4321 == 1)
+                                    TarID[i] = 'Q';
+                                else if (b4321 == 2)
+                                    TarID[i] = 'R';
+                                else if (b4321 == 3)
+                                    TarID[i] = 'S';
+                                else if (b4321 == 4)
+                                    TarID[i] = 'T';
+                                else if (b4321 == 5)
+                                    TarID[i] = 'U';
+                                else if (b4321 == 6)
+                                    TarID[i] = 'V';
+                                else if (b4321 == 7)
+                                    TarID[i] = 'W';
+                                else if (b4321 == 8)
+                                    TarID[i] = 'X';
+                                else if (b4321 == 9)
+                                    TarID[i] = 'Y';
+                                else if (b4321 == 10)
+                                    TarID[i] = 'Z';
+                            }
+                        }
+                        i++;
+                        h = h + 6;
+                    }
+                    DeCode.Add(new string(TarID));
                 }
                 else if (Info.DataItemID[1] == "250")
                 {
                     //Item 250, Mode S MB Data
-                }
+                    int Rep = Octets.Dequeue();
+                    string DataOctet = "";
+                    int i = 0;
+                    while (i < Rep-1)
+                    {
+                        DataOctet = ""+DataOctet+""+ Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
+                        i++;
+                    }
+
+                    string BDS = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+                    char[] BDS1 = new char[4]; char[] BDS2 = new char[4];
+                    i = 0;
+                    while (i < 4)
+                    {
+                        BDS1[i] = bitsOctet[i];
+                        BDS2[i] = bitsOctet[i+4];
+                        i++;
+                    }
+                    DeCode.Add(DataOctet);
+                    DeCode.Add(new string(BDS1));
+                    DeCode.Add(new string(BDS2));
+                } //NO TEST
                 else if (Info.DataItemID[1] == "270")
                 {
                     //Item 270, Target Size & Orientation
+
                 }
                 else if (Info.DataItemID[1] == "280")
                 {

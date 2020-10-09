@@ -1,10 +1,13 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -205,7 +208,7 @@ namespace PGTA_P1
                     int[] DataOctet = new int[2];
                     DataOctet[0] = Convert.ToInt32(Octets.Dequeue());
                     DataOctet[1] = Convert.ToInt32(Octets.Dequeue());
-                    string Lin = "SAC = " + DataOctet[0] + ", SIC = " + DataOctet[1] + "";
+                    string Lin = "SAC: " + DataOctet[0] + ", SIC: " + DataOctet[1] + "";
                     DeCode.Add(Lin);
                 }
                 else if (Info.DataItemID[1] == "020")
@@ -782,8 +785,7 @@ namespace PGTA_P1
                     TA[1] = Octets.Dequeue();
                     TA[0] = Octets.Dequeue();
 
-                    int TA_Dec = BitConverter.ToInt32(TA, 0);
-                    DeCode.Add(Convert.ToString(TA_Dec));
+                    DeCode.Add(Conversion.Hex(BitConverter.ToInt32(TA, 0)));
                 }
                 else if (Info.DataItemID[1] == "245")
                 {
@@ -909,7 +911,6 @@ namespace PGTA_P1
                         i++;
                     }
 
-                    string BDS = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                     char[] bitsOctet = DataOctet.ToCharArray();
                     char[] BDS1 = new char[4]; char[] BDS2 = new char[4];
                     i = 0;
@@ -926,37 +927,238 @@ namespace PGTA_P1
                 else if (Info.DataItemID[1] == "270")
                 {
                     //Item 270, Target Size & Orientation
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
 
+                    //Lenght
+                    int i = 1; char[] NewB = new char[8]; NewB[0] = '0';
+                    while (i < 8)
+                    {
+                        NewB[i] = bitsOctet[i - 1];
+                        i++;
+                    }
+                    int Dat = Convert.ToByte(new string(NewB), 2);
+                    DeCode.Add(Convert.ToString(Dat));
+                    this.Info.units.Add("m");
+
+                    //First FX
+                    if (bitsOctet[7] == '1')
+                    {
+                        DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                        bitsOctet = DataOctet.ToCharArray();
+
+                        //Orientacio
+                        i = 1; NewB = new char[8]; NewB[0] = '0';
+                        while (i < 8)
+                        {
+                            NewB[i] = bitsOctet[i - 1];
+                            i++;
+                        }
+                        Dat = Convert.ToByte(new string(NewB), 2);
+                        double Or = Dat * 360 / 128;
+                        DeCode.Add(Convert.ToString(Or));
+                        this.Info.units.Add("º");
+
+                        //Second FX
+                        if (bitsOctet[7] == '1')
+                        {
+                            DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                            bitsOctet = DataOctet.ToCharArray();
+
+                            //Width
+                            i = 1; NewB = new char[8]; NewB[0] = '0';
+                            while (i < 8)
+                            {
+                                NewB[i] = bitsOctet[i - 1];
+                                i++;
+                            }
+                            Dat = Convert.ToByte(new string(NewB), 2);
+                            DeCode.Add(Convert.ToString(Dat));
+                            this.Info.units.Add("m");
+                        }
+                    }
                 }
                 else if (Info.DataItemID[1] == "280")
                 {
                     //Item 280, Presence
-                }
+                    int Rep = Octets.Dequeue();
+                    int i = 0; 
+                    while (i < Rep)
+                    {
+                        //DRHO
+                        string DRHO = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                        char[] bitsOctet = DRHO.ToCharArray(); int DRHO_Dec = 0;
+                        if (bitsOctet[0] == '1')
+                        {
+                            int z = 0;
+                            while (z < bitsOctet.Length)
+                            {
+                                if (bitsOctet[z] == '1')
+                                    bitsOctet[z] = '0';
+                                else
+                                    bitsOctet[z] = '1';
+                                z++;
+                            }
+                            DRHO_Dec = Convert.ToInt32(new string(bitsOctet), 2) * (-1);
+                        }
+                        else
+                        {
+                            DRHO_Dec = Convert.ToInt32(new string(bitsOctet), 2);
+                        }
+                        DeCode.Add(Convert.ToString(DRHO_Dec));
+                        this.Info.units.Add("m");
+
+                        //DTHETA
+                        string DTHETA = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                        bitsOctet = DTHETA.ToCharArray(); double DTHETA_Dec = 0;
+                        if (bitsOctet[0] == '1')
+                        {
+                            int z = 0;
+                            while (z < bitsOctet.Length)
+                            {
+                                if (bitsOctet[z] == '1')
+                                    bitsOctet[z] = '0';
+                                else
+                                    bitsOctet[z] = '1';
+                                z++;
+                            }
+                            DTHETA_Dec = Convert.ToInt32(new string(bitsOctet), 2) * (-1) *0.15;
+                        }
+                        else
+                        {
+                            DTHETA_Dec = Convert.ToInt32(new string(bitsOctet), 2) *0.15;
+                        }
+                        DeCode.Add(Convert.ToString(DTHETA_Dec));
+                        this.Info.units.Add("º");
+
+                        i++;
+                    }
+                    int h = 0;
+                } //NO TEST
                 else if (Info.DataItemID[1] == "300")
                 {
                     //Item 300, Vehicle Fleet Identification 
-                }
+                    int VFI = Octets.Dequeue();
+                    if (VFI == 0)
+                        DeCode.Add("Unknown");
+                    else if (VFI == 1)
+                        DeCode.Add("ATC equipment maintenance");
+                    else if (VFI == 2)
+                        DeCode.Add("Airport maintenance");
+                    else if (VFI == 3)
+                        DeCode.Add("Fire");
+                    else if (VFI == 4)
+                        DeCode.Add("Bird scarer");
+                    else if (VFI == 5)
+                        DeCode.Add("Snow plough");
+                    else if (VFI == 6)
+                        DeCode.Add("Runway sweeper");
+                    else if (VFI == 7)
+                        DeCode.Add("Emergency");
+                    else if (VFI == 8)
+                        DeCode.Add("Police");
+                    else if (VFI == 9)
+                        DeCode.Add("Bus");
+                    else if (VFI == 10)
+                        DeCode.Add("Tug (push/tow)");
+                    else if (VFI == 11)
+                        DeCode.Add("Grass cutter");
+                    else if (VFI == 12)
+                        DeCode.Add("Fuel");
+                    else if (VFI == 13)
+                        DeCode.Add("Baggage");
+                    else if (VFI == 14)
+                        DeCode.Add("Catering");
+                    else if (VFI == 15)
+                        DeCode.Add("Aircraft maintenance");
+                    else 
+                        DeCode.Add("Flyco (follow me)");
+                } //NO TEST
                 else if (Info.DataItemID[1] == "310")
                 {
                     //Item 310, Pre-programmed Message 
-                }
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+
+                    //TRB
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("TRB: Default");
+                    else
+                        DeCode.Add("TRB: In Trouble");
+
+                    //MSG
+                    bitsOctet[0] = '0';
+                    int MSG = Convert.ToByte(new string(bitsOctet), 2);
+                    if(MSG == 1)
+                        DeCode.Add("MSG: Towing aircraft");
+                    else if (MSG == 2)
+                        DeCode.Add("MSG: “Follow me” operation ");
+                    else if (MSG == 2)
+                        DeCode.Add("MSG: Runway check");
+                    else if (MSG == 2)
+                        DeCode.Add("MSG: Emergency operation (fire, medical…) ");
+                    else
+                        DeCode.Add("MSG: Work in progress (maintenance, birds scarer, sweepers…) ");
+                } //NO TEST
                 else if (Info.DataItemID[1] == "500")
                 {
                     //Item 500, Standard Deviation of Position 
+                    double X = Octets.Dequeue() * 0.25; DeCode.Add(Convert.ToString(X)); this.Info.units.Add("m (x)");
+                    double Y = Octets.Dequeue() * 0.25; DeCode.Add(Convert.ToString(Y)); this.Info.units.Add("m (y)");
+                    double XY = Octets.Dequeue() * 0.25; DeCode.Add(Convert.ToString(XY)); this.Info.units.Add("m^2");
+                } //NO TEST
+                else if (Info.DataItemID[1] == "550")
+                {
+                    //Item 550, System Status
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+
+                    //NOGO
+                    string NOGO = "" + bitsOctet[0] + "" + bitsOctet[1] + "";
+                    if (NOGO == "00")
+                        DeCode.Add("NOGO: Operational");
+                    else if (NOGO == "01")
+                        DeCode.Add("NOGO: Degraded");
+                    else if (NOGO == "10")
+                        DeCode.Add("NOGO: NOGO");
+
+                    //OVL
+                    if(bitsOctet[2] == '0')
+                        DeCode.Add("OVL: No overload");
+                    else
+                        DeCode.Add("OVL: Overload");
+
+                    //TSV
+                    if (bitsOctet[3] == '0')
+                        DeCode.Add("TSV: valid");
+                    else
+                        DeCode.Add("TSV: invalid");
+
+                    //DIV
+                    if (bitsOctet[4] == '0')
+                        DeCode.Add("DIV: Normal Operation");
+                    else
+                        DeCode.Add("DIV: Diversity degraded");
+
+                    //TTF
+                    if (bitsOctet[5] == '0')
+                        DeCode.Add("TTF: Test Target Operative");
+                    else
+                        DeCode.Add("TTF: Test Target Failure");
+
+                    int h = 0;
                 }
                 else
                 {
-                    //Intem no inscrit #ERROR#
+                    DeCode.Add("FATAL ERROR");
                 }
             }
             else
             {
                 //Categoria 021
-
-                //Item 008, Aircraft Operational Status
                 if (Info.DataItemID[1] == "008")
                 {
-
+                    //Item 008, Aircraft Operational Status
                     string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                     char[] bitsOctet = DataOctet.ToCharArray();
 
@@ -1006,92 +1208,92 @@ namespace PGTA_P1
                         DeCode.Add("SA: Antenna Diversity");
                     else
                         DeCode.Add("SA: Single Antenna only");
-
-
-
                 }
-                // 010, Data Source Identification
                 else if (Info.DataItemID[1] == "010")
                 {
+                    // 010, Data Source Identification
                     //Item 010, Data Source Identifier // He copiado el I010/010, creo que es igual
                     int[] DataOctet = new int[2];
                     DataOctet[0] = Convert.ToInt32(Octets.Dequeue());
                     DataOctet[1] = Convert.ToInt32(Octets.Dequeue());
-                    string Lin = "SAC = " + DataOctet[0] + ", SIC = " + DataOctet[1] + "";
+                    string Lin = "SAC: " + DataOctet[0] + ", SIC: " + DataOctet[1] + "";
                     DeCode.Add(Lin);
 
                 }
-                //010, Service Identification
                 else if (Info.DataItemID[1] == "015")
                 {
+                    //010, Service Identification
                     string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                     DeCode.Add(DataOctet);
-
                 }
-                //016, Service Management 
                 else if (Info.DataItemID[1] == "016")
                 {
+                    //016, Service Management 
                     byte[] RP = new byte[2];
                     RP[0] = Octets.Dequeue();
-                    RP[1] = 00000000;
-                    int RP_Dec = BitConverter.ToInt16(RP, 0);
-                    DeCode.Add("RP=" + Convert.ToString(RP_Dec));
+                    RP[1] = 0;
+                    double RP_Dec = BitConverter.ToInt16(RP, 0)*0.5;
+                    if(RP_Dec!= 0)
+                    {
+                        DeCode.Add(Convert.ToString(RP_Dec));
+                        this.Info.units.Add("s");
+                    }
+                    else
+                        DeCode.Add("RT: Data driven mode Range 0... 127.5 seconds, a value of 127.5 indicates 127.5 seconds or above");
                 }
-                // 020, Emitter Category
                 else if (Info.DataItemID[1] == "020")
                 {
+                    // 020, Emitter Category
                     byte[] ECAT = new byte[2];
                     ECAT[0] = Octets.Dequeue();
                     ECAT[1] = 00000000;
                     int ECAT_Dec = BitConverter.ToInt16(ECAT, 0);
                     if (ECAT_Dec == 0)
-                        DeCode.Add("ECAT: No ADS-B Emitter Category Information");
+                        DeCode.Add("No ADS-B Emitter Category Information");
                     else if (ECAT_Dec == 1)
-                        DeCode.Add("ECAT: light aircraft <= 15500 lbs");
+                        DeCode.Add("light aircraft <= 15500 lbs");
                     else if (ECAT_Dec == 2)
-                        DeCode.Add("ECAT: 15500 lbs < small aircraft <75000 lbs");
+                        DeCode.Add("15500 lbs < small aircraft <75000 lbs");
                     else if (ECAT_Dec == 3)
-                        DeCode.Add("ECAT: 75000 lbs < medium a/c < 300000 lbs");
+                        DeCode.Add("75000 lbs < medium a/c < 300000 lbs");
                     else if (ECAT_Dec == 4)
-                        DeCode.Add("ECAT: High Vortex Large");
+                        DeCode.Add("High Vortex Large");
                     else if (ECAT_Dec == 5)
-                        DeCode.Add("ECAT: 300000 lbs <= heavy aircraft");
+                        DeCode.Add("300000 lbs <= heavy aircraft");
                     else if (ECAT_Dec == 6)
-                        DeCode.Add("ECAT: highly manoeuvrable (5g acceleration capability) and high speed(> 400 knots cruise)");
+                        DeCode.Add("highly manoeuvrable (5g acceleration capability) and high speed(> 400 knots cruise)");
                     else if (ECAT_Dec <= 9 && ECAT_Dec >= 7)
-                        DeCode.Add("ECAT: reserved");
+                        DeCode.Add("reserved");
                     else if (ECAT_Dec == 10)
-                        DeCode.Add("ECAT: rotocraft");
+                        DeCode.Add("rotocraft");
                     else if (ECAT_Dec == 11)
-                        DeCode.Add("ECAT: glider / sailplane");
+                        DeCode.Add("glider / sailplane");
                     else if (ECAT_Dec == 12)
-                        DeCode.Add("ECAT: lighter-than-air");
+                        DeCode.Add("lighter-than-air");
                     else if (ECAT_Dec == 13)
-                        DeCode.Add("ECAT: unmanned aerial vehicle");
+                        DeCode.Add("unmanned aerial vehicle");
                     else if (ECAT_Dec == 14)
-                        DeCode.Add("ECAT: space / transatmospheric vehicle");
+                        DeCode.Add("space / transatmospheric vehicle");
                     else if (ECAT_Dec == 15)
-                        DeCode.Add("ECAT: ultralight / handglider / paraglider");
+                        DeCode.Add("ultralight / handglider / paraglider");
                     else if (ECAT_Dec == 16)
-                        DeCode.Add("ECAT: parachutist / skydiver");
+                        DeCode.Add("parachutist / skydiver");
                     else if (ECAT_Dec <= 19 && ECAT_Dec >= 17)
-                        DeCode.Add("ECAT: reserved");
+                        DeCode.Add("reserved");
                     else if (ECAT_Dec == 20)
-                        DeCode.Add("ECAT: surface emergency vehicle");
+                        DeCode.Add("surface emergency vehicle");
                     else if (ECAT_Dec == 21)
-                        DeCode.Add("ECAT: surface service vehicle");
+                        DeCode.Add("surface service vehicle");
                     else if (ECAT_Dec == 22)
-                        DeCode.Add("ECAT: fixed ground or tethered obstruction");
+                        DeCode.Add("fixed ground or tethered obstruction");
                     else if (ECAT_Dec == 23)
-                        DeCode.Add("ECAT: cluster obstacle");
+                        DeCode.Add("cluster obstacle");
                     else if (ECAT_Dec == 24)
-                        DeCode.Add("ECAT: line obstacle");
+                        DeCode.Add("line obstacle");
                 }
-                //040, Target Report Descriptor
                 else if (Info.DataItemID[1] == "040")
                 {
-
-
+                    //040, Target Report Descriptor
                     string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                     char[] bitsOctet = DataOctet.ToCharArray();
 
@@ -1110,9 +1312,9 @@ namespace PGTA_P1
                     string ARC = "" + bitsOctet[3] + "" + bitsOctet[4] + "";
                     if (ARC == "00")
                         DeCode.Add("ARC: 25 ft");
-                    if (ARC == "01")
+                    else if (ARC == "01")
                         DeCode.Add("ARC: 100 ft");
-                    if (ARC == "10")
+                    else if (ARC == "10")
                         DeCode.Add("ARC: Unknown");
                     else
                         DeCode.Add("ARC: Invalid");
@@ -1133,23 +1335,23 @@ namespace PGTA_P1
                         DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                         bitsOctet = DataOctet.ToCharArray();
 
-                        if (bitsOctet[0] == 0)
+                        if (bitsOctet[0] == '0')
                             DeCode.Add("DCR: No differential correction (ADS-B)");
                         else
                             DeCode.Add("DCR: Differential correction (ADS-B)");
-                        if (bitsOctet[1] == 0)
+                        if (bitsOctet[1] == '0')
                             DeCode.Add("GBS: Ground Bit not set");
                         else
                             DeCode.Add("GBS: Ground Bit set");
-                        if (bitsOctet[2] == 0)
+                        if (bitsOctet[2] == '0')
                             DeCode.Add("SIM: Actual target report ");
                         else
                             DeCode.Add("SIM: Simulated target report");
-                        if (bitsOctet[3] == 0)
+                        if (bitsOctet[3] == '0')
                             DeCode.Add("TST: Default ");
                         else
                             DeCode.Add("TST: Test Target ");
-                        if (bitsOctet[4] == 0)
+                        if (bitsOctet[4] == '0')
                             DeCode.Add("SSA: Equipment capable to provide Selected Altitude");
                         else
                             DeCode.Add("SSA: Equipment not capable to provide Selected Altitude");
@@ -1168,39 +1370,51 @@ namespace PGTA_P1
 
                             DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                             bitsOctet = DataOctet.ToCharArray();
-                            if (bitsOctet[2] == 0)
+                            if (bitsOctet[1] == '0')
+                                DeCode.Add("LLC: Default");
+                            else
+                                DeCode.Add("LLC: List Lookup failed (see note)");
+                            if (bitsOctet[2] == '0')
                                 DeCode.Add("IPC: Independent Position Check default(see note)");
                             else
                                 DeCode.Add("IPC: Independent Position Check failed");
-
-                            if (bitsOctet[3] == 0)
+                            if (bitsOctet[3] == '0')
                                 DeCode.Add("NOGO: NOGO-bit not set");
                             else
                                 DeCode.Add("NOGO: NOGO-bit set");
-                            if (bitsOctet[4] == 0)
+                            if (bitsOctet[4] == '0')
                                 DeCode.Add("CPR: CPR Validation correct");
                             else
                                 DeCode.Add("CPR: CPR Validation failed");
-                            if (bitsOctet[5] == 0)
+                            if (bitsOctet[5] == '0')
                                 DeCode.Add("LDPJ: LDPJ not detected");
                             else
                                 DeCode.Add("LDPJ: LDPJ detected");
-                            if (bitsOctet[6] == 0)
+                            if (bitsOctet[6] == '0')
                                 DeCode.Add("RCF: default");
                             else
                                 DeCode.Add("RCF: Range Check failed");
-
                         }
                     }
                 }
-                // 070, Mode 3/A Code in Octal Representation 
                 else if (Info.DataItemID[1] == "070")
                 {
+                    // 070, Mode 3/A Code in Octal Representation 
+                    string DataOctet = "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
+                    char[] bitsOctet = DataOctet.ToCharArray();
 
+                    int i = 4;
+                    char[] Reply = new char[12];
+                    while (i < bitsOctet.Length)
+                    {
+                        Reply[i - 4] = bitsOctet[i];
+                        i++;
+                    }
+                    DeCode.Add(Reply.ToString());
                 }
-                //071, Time of Applicability for Position
                 else if (Info.DataItemID[1] == "071")
                 {
+                    //071, Time of Applicability for Position
                     byte[] TAP = new byte[4];
                     TAP[3] = 0;
                     TAP[2] = Octets.Dequeue();
@@ -1209,10 +1423,11 @@ namespace PGTA_P1
                     int TAP_Dec = BitConverter.ToInt32(TAP, 0);
                     double TAP_Dou = Convert.ToDouble(TAP_Dec) / 128;
                     DeCode.Add(Convert.ToString(TAP_Dou));
-                }
-                //072, Time of Applicability for Velocity
+                    this.Info.units.Add("s");
+                } 
                 else if (Info.DataItemID[1] == "072")
                 {
+                    //072, Time of Applicability for Velocity
                     byte[] TAV = new byte[4];
                     TAV[3] = 0;
                     TAV[2] = Octets.Dequeue();
@@ -1221,10 +1436,11 @@ namespace PGTA_P1
                     int TAV_Dec = BitConverter.ToInt32(TAV, 0);
                     double TAV_Dou = Convert.ToDouble(TAV_Dec) / 128;
                     DeCode.Add(Convert.ToString(TAV_Dou));
-                }
-                //073, Time of Message Reception for Positio
+                    this.Info.units.Add("s");
+                } //NO TEST
                 else if (Info.DataItemID[1] == "073")
                 {
+                    //073, Time of Message Reception for Positio
                     byte[] TMRP = new byte[4];
                     TMRP[3] = 0;
                     TMRP[2] = Octets.Dequeue();
@@ -1233,38 +1449,10 @@ namespace PGTA_P1
                     int TMRP_Dec = BitConverter.ToInt32(TMRP, 0);
                     double TMRP_Dou = Convert.ToDouble(TMRP_Dec) / 128;
                     DeCode.Add(Convert.ToString(TMRP_Dou));
+                    this.Info.units.Add("s");
                 }
-                //074, Time of Message Reception of Position–High Precision
-                //Inacabado, esta mal planteado
-                else if (Info.DataItemID[1] == "074")
-                {
-                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
-                    char[] bitsOctet = DataOctet.ToCharArray();
-                    string FSI = "" + bitsOctet[0] + "" + bitsOctet[1] + "";
-                    if (FSI == "11")
-                        DeCode.Add("FSI: Reserved");
-                    if (FSI == "10")
-                        DeCode.Add("TOMRp whole seconds = (I021 / 073) Whole seconds – 1");
-                    if (FSI == "01")
-                        DeCode.Add("TOMRp whole seconds = (I021 / 073) Whole seconds + 1");
-                    else
-                        DeCode.Add("TOMRp whole seconds = (I021 / 073) Whole seconds");
-
-                    string TMRPh = "";
-                    int i = 0;
-                    foreach (char element in bitsOctet)
-                    {
-                        if (i > 1)
-                        {
-                            TMRPh = TMRPh + "" + element;
-                            i++;
-                        }
-                    }
-                    int TMPRh_Dec = BitConverter.ToInt32(TMRPh,);
-
-
-                }
-                //DeCode.Add("");
+                // TUTTO GERARD
+                else if 
             }
         }
     }

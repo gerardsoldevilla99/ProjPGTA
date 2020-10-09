@@ -462,6 +462,7 @@ namespace PGTA_P1
                     //    double LonD = -1*ByteInt * (180 / 2 ^ 31);
                     //    DeCode.Add(Convert.ToString(LonD));
                     //}
+                    DeCode.Add("FATAL ERROR");
                 } //NO TEST (BAD)
                 else if (Info.DataItemID[1] == "042")
                 {
@@ -1232,8 +1233,8 @@ namespace PGTA_P1
                     byte[] RP = new byte[2];
                     RP[0] = Octets.Dequeue();
                     RP[1] = 0;
-                    double RP_Dec = BitConverter.ToInt16(RP, 0)*0.5;
-                    if(RP_Dec!= 0)
+                    double RP_Dec = BitConverter.ToInt16(RP, 0) * 0.5;
+                    if (RP_Dec != 0)
                     {
                         DeCode.Add(Convert.ToString(RP_Dec));
                         this.Info.units.Add("s");
@@ -1424,7 +1425,7 @@ namespace PGTA_P1
                     double TAP_Dou = Convert.ToDouble(TAP_Dec) / 128;
                     DeCode.Add(Convert.ToString(TAP_Dou));
                     this.Info.units.Add("s");
-                } 
+                }
                 else if (Info.DataItemID[1] == "072")
                 {
                     //072, Time of Applicability for Velocity
@@ -1452,7 +1453,50 @@ namespace PGTA_P1
                     this.Info.units.Add("s");
                 }
                 // TUTTO GERARD
-                else if 
+                else if (Info.DataItemID[1] == "165")
+                {
+                    //I021/165 Track Angle Rate 
+                }
+                else if (Info.DataItemID[1] == "170")
+                {
+                    //I021/170 Target Identification 
+                }
+                else if (Info.DataItemID[1] == "200")
+                {
+                    //I021/200 Target Status 
+                }
+                else if (Info.DataItemID[1] == "210")
+                {
+                    //I021/210 MOPS Version
+                }
+                else if (Info.DataItemID[1] == "230")
+                {
+                    //I021/230 Roll Angle
+                }
+                else if (Info.DataItemID[1] == "250")
+                {
+                    //I021/250 Mode S MB Data 
+                }
+                else if (Info.DataItemID[1] == "260")
+                {
+                    //I021/260 ACAS Resolution Advisory Report
+                }
+                else if (Info.DataItemID[1] == "271")
+                {
+                    //I021/271 Surface Capabilities and Characteristics
+                }
+                else if (Info.DataItemID[1] == "295")
+                {
+                    //I021/295 Data Ages 
+                }
+                else if (Info.DataItemID[1] == "400")
+                {
+                    //I021/400 Receiver ID 
+                }
+                else
+                {
+                    DeCode.Add("FATAL ERROR");
+                }
             }
         }
     }

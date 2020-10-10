@@ -1485,7 +1485,7 @@ namespace PGTA_P1
                     int TOMRPh_Dec = (BitConverter.ToInt32(TOMRPh, 0)) / (2 ^ 30);
                     DeCode.Add(Convert.ToString(TOMRPh_Dec));
                     this.Info.units.Add("s");
-                  
+
                 }
                 else if (Info.DataItemID[1] == "075")
                 {
@@ -1550,7 +1550,7 @@ namespace PGTA_P1
                 else if (Info.DataItemID[1] == "080")
                 {
                     //080, Target Address
-                    string TAT = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0')+""+ Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + ""+Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
+                    string TAT = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
                     DeCode.Add(TAT);
                     DeCode.Add(Convert.ToString(Conversion.Hex(TAT)));
                 }
@@ -1560,8 +1560,8 @@ namespace PGTA_P1
                     //090, Quality Indicators
                     string dataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                     char[] dataVec = dataOctet.ToCharArray();
-                    DeCode.Add((Convert.ToInt32("" + dataVec[0] + "" + dataVec[1] + "" + dataVec[2] + ""),2).ToString());
-                    DeCode.Add((Convert.ToInt32("" + dataVec[3] + "" + dataVec[4] + "" + dataVec[5] + "" + dataVec[6] + ""),2).ToString());
+                    DeCode.Add((Convert.ToInt32("" + dataVec[0] + "" + dataVec[1] + "" + dataVec[2] + ""), 2).ToString());
+                    DeCode.Add((Convert.ToInt32("" + dataVec[3] + "" + dataVec[4] + "" + dataVec[5] + "" + dataVec[6] + ""), 2).ToString());
                     if (dataVec[7] == '0')
                     { }
                     else
@@ -1569,8 +1569,8 @@ namespace PGTA_P1
                         dataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                         dataVec = dataOctet.ToCharArray();
                         DeCode.Add((Convert.ToInt32("" + dataVec[0] + "")).ToString());
-                        DeCode.Add((Convert.ToInt32("" + dataVec[1] + "" + dataVec[2] + ""),2).ToString());
-                        DeCode.Add((Convert.ToInt32("" + dataVec[3] + "" + dataVec[4] + "" + dataVec[5] + "" + dataVec[6] + ""),2).ToString());
+                        DeCode.Add((Convert.ToInt32("" + dataVec[1] + "" + dataVec[2] + ""), 2).ToString());
+                        DeCode.Add((Convert.ToInt32("" + dataVec[3] + "" + dataVec[4] + "" + dataVec[5] + "" + dataVec[6] + ""), 2).ToString());
                         if (dataVec[7] == '0')
                         {
 
@@ -1583,15 +1583,15 @@ namespace PGTA_P1
                                 DeCode.Add("SIL: measured per flight-hour");
                             else
                                 DeCode.Add("measured per sample");
-                            DeCode.Add((Convert.ToInt32("" + dataVec[3] + "" + dataVec[4] + ""),2).ToString());
-                            DeCode.Add((Convert.ToInt32("" + dataVec[5] + "" + dataVec[6] + ""),2).ToString());
+                            DeCode.Add((Convert.ToInt32("" + dataVec[3] + "" + dataVec[4] + ""), 2).ToString());
+                            DeCode.Add((Convert.ToInt32("" + dataVec[5] + "" + dataVec[6] + ""), 2).ToString());
                             if (dataVec[7] == 0)
                             { }
                             else
                             {
                                 dataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                                 dataVec = dataOctet.ToCharArray();
-                                int PIC = Convert.ToInt16(("" + dataVec[0] + "" + dataVec[1] + "" + "" + dataVec[2] + "" + dataVec[3] + ""),2);
+                                int PIC = Convert.ToInt16(("" + dataVec[0] + "" + dataVec[1] + "" + "" + dataVec[2] + "" + dataVec[3] + ""), 2);
                                 if (PIC == 14)
                                     DeCode.Add("< 0.004 NM");
                                 if (PIC == 13)
@@ -1624,7 +1624,7 @@ namespace PGTA_P1
                                     DeCode.Add("No integrity (or > 20.0 NM) ");
                                 else
                                 { }
-                                if (dataVec[7]==0)
+                                if (dataVec[7] == 0)
                                 { }
                                 else { }
 
@@ -1639,6 +1639,218 @@ namespace PGTA_P1
 
                 }
 
+                else if (Info.DataItemID[1] == "110")
+                {
+                    //110, Trajectory Intent
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("TIS: Absence of Subfield #1");
+                    else
+                    {
+                        DeCode.Add("TIS: Presence of Subfield #1");
+                    }
+                    if (bitsOctet[1] == '0')
+                        DeCode.Add("TID: Absence of Subfield #2");
+                    else
+                    {
+                        DeCode.Add("TID: Presence of Subfield #2");
+                    }
+                    if (bitsOctet[7] == '0')
+                    { }
+                    else
+                    {
+                        DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                        bitsOctet = DataOctet.ToCharArray();
+                        if (bitsOctet[0] == '0')
+                            DeCode.Add("NAV: Trajectory Intent Data is available for this aircraf");
+                        else
+                            DeCode.Add("NAV: Trajectory Intent Data is not available for this aircraft");
+
+                        if (bitsOctet[0] == '0')
+                            DeCode.Add("NVB: Trajectory Intent Data is valid");
+                        else
+                            DeCode.Add("NVB: Trajectory Intent Data is not valid");
+                        if (bitsOctet[7] == '0')
+                        { }
+                        else
+                        {
+                            DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                            DeCode.Add("REP: " + (Convert.ToInt32(DataOctet), 2).ToString());
+
+                            DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                            bitsOctet = DataOctet.ToCharArray();
+                            if (bitsOctet[0] == '0')
+                                DeCode.Add("TCA: TCP number available");
+                            else
+                                DeCode.Add("TCA: TCP number not available");
+
+                            if (bitsOctet[0] == '1')
+                                DeCode.Add("NC: TCP compliance");
+                            else
+                                DeCode.Add("NC: TCP non-compliance ");
+                            DeCode.Add((Convert.ToInt32("" + bitsOctet[2] + "" + bitsOctet[3] + "" + bitsOctet[4] + "" + bitsOctet[5] + "" + bitsOctet[6] + "" + bitsOctet[7] + ""), 2).ToString());
+
+                            byte[] Alt = new byte[2];
+                            Alt[1] = Octets.Dequeue();
+                            Alt[0] = Octets.Dequeue();
+                            int Alt_Dec = BitConverter.ToInt16(Alt, 0) * 10;
+                            DeCode.Add(Alt_Dec.ToString());
+                            this.Info.units.Add("ft");
+
+                            byte[] Lat = new byte[4];
+                            Lat[3] = 0;
+                            Lat[2] = Octets.Dequeue();
+                            Lat[1] = Octets.Dequeue();
+                            Lat[0] = Octets.Dequeue();
+                            double Lat_deg = BitConverter.ToInt32(Lat, 0) * 180 / (2 ^ 23);
+                            DeCode.Add(Lat_deg.ToString());
+                            this.Info.units.Add("deg");
+
+                            byte[] Long = new byte[4];
+                            Long[3] = 0;
+                            Long[2] = Octets.Dequeue();
+                            Long[1] = Octets.Dequeue();
+                            Long[0] = Octets.Dequeue();
+                            double Long_deg = BitConverter.ToInt32(Long, 0) * 180 / (2 ^ 23);
+                            DeCode.Add(Long_deg.ToString());
+                            this.Info.units.Add("deg");
+
+                            DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                            bitsOctet = DataOctet.ToCharArray();
+                            string PT = Convert.ToString("" + bitsOctet[0] + "" + bitsOctet[1] + "" + bitsOctet[2] + "" + bitsOctet[3] + "");
+                            int PT_d = Convert.ToInt16(PT, 2);
+                            if (PT_d == 0)
+                                DeCode.Add("Point Type: Unknown");
+                            if (PT_d == 1)
+                                DeCode.Add("Point Type: Fly by waypoint (LT)");
+                            if (PT_d == 2)
+                                DeCode.Add("Point Type: Fly over waypoint (LT)");
+                            if (PT_d == 3)
+                                DeCode.Add("Point Type: Hold pattern (LT)");
+                            if (PT_d == 4)
+                                DeCode.Add("Point Type: Procedure hold (LT)");
+                            if (PT_d == 5)
+                                DeCode.Add("Point Type: Procedure turn (LT)");
+                            if (PT_d == 6)
+                                DeCode.Add("Point Type: RF leg (LT)");
+                            if (PT_d == 7)
+                                DeCode.Add("Point Type: Top of climb (VT)");
+                            if (PT_d == 8)
+                                DeCode.Add("Point Type: Top of descent (VT)");
+                            if (PT_d == 9)
+                                DeCode.Add("Point Type: Start of level (VT)");
+                            if (PT_d == 10)
+                                DeCode.Add("Point Type: Cross-over altitude (VT)");
+                            if (PT_d == 11)
+                                DeCode.Add("Point Type: Transition altitude (VT)");
+                            string TD = Convert.ToString("" + bitsOctet[4] + "" + bitsOctet[5] + "");
+                            if (TD == "00")
+                                DeCode.Add("TD: N/A");
+                            if (TD == "01")
+                                DeCode.Add("TD: Turn right ");
+                            if (TD == "10")
+                                DeCode.Add("TD: Turn left");
+                            else
+                                DeCode.Add("TD: No turn");
+                            if (bitsOctet[6] == '0')
+                                DeCode.Add("TRA: TTR not available");
+                            else
+                                DeCode.Add("TRA: TTR available");
+                            if (bitsOctet[6] == '0')
+                                DeCode.Add("TOA: TOV available");
+                            else
+                                DeCode.Add("TOA: TOV not available");
+                            byte[] TOV = new byte[4];
+                            TOV[3] = 0;
+                            TOV[2] = Octets.Dequeue();
+                            TOV[1] = Octets.Dequeue();
+                            TOV[0] = Octets.Dequeue();
+                            int TOV_Dec = BitConverter.ToInt32(TOV, 0);
+                            DeCode.Add(TOV_Dec.ToString());
+                            this.Info.units.Add("seconds");
+
+                            byte[] TTR = new byte[2];
+                            TTR[1] = Octets.Dequeue();
+                            TTR[0] = Octets.Dequeue();
+                            double TTR_Dec = BitConverter.ToInt16(TTR, 0) / 100;
+                            DeCode.Add(TTR_Dec.ToString());
+                            this.Info.units.Add("Nm");
+                        }
+                    }
+                }
+                else if (Info.DataItemID[1] == "130")
+                {
+                    //130, Position in WGS - 84 Co - ordinates
+                    byte[] Lat = new byte[4];
+                    Lat[3] = 0;
+                    Lat[2] = Octets.Dequeue();
+                    Lat[1] = Octets.Dequeue();
+                    Lat[0] = Octets.Dequeue();
+                    double Lat_Dec = BitConverter.ToInt32(Lat, 0) * 180 / (2 ^ 23);
+                    DeCode.Add(Lat_Dec.ToString());
+                    this.Info.units.Add("degrees");
+
+                    byte[] Lon = new byte[4];
+                    Lon[3] = 0;
+                    Lon[2] = Octets.Dequeue();
+                    Lon[1] = Octets.Dequeue();
+                    Lon[0] = Octets.Dequeue();
+                    double Lon_Dec = BitConverter.ToInt32(Lon, 0) * 180 / (2 ^ 23);
+                    DeCode.Add(Lon_Dec.ToString());
+                    this.Info.units.Add("degrees");
+                }
+                else if (Info.DataItemID[1] == "131")
+                {
+                    //131, High - Resolution Position in WGS - 84 Co - ordinates
+                    byte[] Lat = new byte[4];
+                    Lat[3] = Octets.Dequeue();
+                    Lat[2] = Octets.Dequeue();
+                    Lat[1] = Octets.Dequeue();
+                    Lat[0] = Octets.Dequeue();
+                    double Lat_Dec = BitConverter.ToInt32(Lat, 0) * 180 / (2 ^ 30);
+                    DeCode.Add(Lat_Dec.ToString());
+                    this.Info.units.Add("degrees");
+
+                    byte[] Lon = new byte[4];
+                    Lon[3] = Octets.Dequeue();
+                    Lon[2] = Octets.Dequeue();
+                    Lon[1] = Octets.Dequeue();
+                    Lon[0] = Octets.Dequeue();
+                    double Lon_Dec = BitConverter.ToInt32(Lon, 0) * 180 / (2 ^ 30);
+                    DeCode.Add(Lon_Dec.ToString());
+                    this.Info.units.Add("degrees");
+                }
+                else if (Info.DataItemID[1] == "132")
+                {
+                    //132, Message Amplitude
+                    byte[] MAM = new byte[2];
+                    MAM[1] = 0;
+                    MAM[0] = Octets.Dequeue();
+                    int MAM_Dec = BitConverter.ToInt16(MAM, 0);
+                    DeCode.Add(MAM_Dec.ToString());
+                    this.Info.units.Add("dBm");
+                }
+                else if (Info.DataItemID[1] == "140")
+                {
+                    //140, Geometric Height
+                    byte[] GH = new byte[2];
+                    GH[1] = Octets.Dequeue();
+                    GH[0] = Octets.Dequeue();
+                    double GH_Dec = BitConverter.ToInt16(GH, 0)*6.25;
+                    DeCode.Add(GH_Dec.ToString());
+                    this.Info.units.Add("ft");
+                }
+                else if (Info.DataItemID[1] == "145")
+                {
+                    //145, Flight Level
+                    byte[] FL = new byte[2];
+                    FL[1] = Octets.Dequeue();
+                    FL[0] = Octets.Dequeue();
+                    double FL_Dec = BitConverter.ToInt16(FL, 0) * 0.25;
+                    DeCode.Add(FL_Dec.ToString());
+                    this.Info.units.Add("ft");
+                }
 
                 // TUTTO GERARD
                 else if (Info.DataItemID[1] == "165")

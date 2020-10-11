@@ -2,6 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
 using System.IO.Ports;
@@ -10,27 +13,32 @@ using System.Net.Http;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace PGTA_P1
 {
     //Representació del DataBlock
     public class DataBlock
     {
+        public string ID_Intern;
         List<byte> Original = new List<byte>();
 
-        string Cat;
+        public string Cat;
         byte[] Long = new byte[2];
         string FSPEL = "";
-        List<DataField> DataFields = new List<DataField>();
+        public List<DataField> DataFields = new List<DataField>();
 
         CatLib ItemsCatInfo;
-        string From; //ADS-B, SMR, otro
+        public string From = "No Data"; //ADS-B, SMR, otro
+        string ID = "No Data";
+        string Vehicle = "No Data";
 
         //A part de construir el DataBlock s'encarrega de repartir la info binaria en cada DataField
-        public DataBlock(Queue<byte> Bytes, CatLib[] Categories)
+        public DataBlock(Queue<byte> Bytes, CatLib[] Categories, int id)
         {
             if (Bytes.Count != 0)
             {
+                this.ID_Intern = Convert.ToString(id);
                 this.Original = Bytes.ToList();
                 this.Cat = Convert.ToString(Bytes.Dequeue());
 
@@ -171,6 +179,116 @@ namespace PGTA_P1
                     
             }
         }
+
+        //Busca en els dataItems indicats un identificador del datablock (T. Addres o T. Identification), també busca el tipus de vehicle.
+        private void GetIDandV()
+        {
+            //ID
+            int c = DataFields.Count();
+            int i = 0; bool e = false;
+            while ((i < c) && (e == false))
+            {
+                DataField Evaluat = DataFields[i];
+                if (Cat == "10")
+                {
+                    if (Evaluat.Info.DataItemID[1] == "245")
+                    {
+                        e = true;
+                        this.ID = Evaluat.DeCode[1];
+                    }
+                }
+                else
+                {
+                    if (Evaluat.Info.DataItemID[1] == "170")
+                    {
+                        e = true;
+                        this.ID = Evaluat.DeCode[0];
+                    }
+                }
+                i++;
+            }
+            if (e == false) 
+            {
+                i = 0;
+                while ((i < c) && (e == false))
+                {
+                    DataField Evaluat = DataFields[i];
+                    if (Cat == "10")
+                    {
+                        if (Evaluat.Info.DataItemID[1] == "220")
+                        {
+                            e = true;
+                            this.ID = Evaluat.DeCode[0];
+                        }
+                    }
+                    else
+                    {
+                        if (Evaluat.Info.DataItemID[1] == "080")
+                        {
+                            e = true;
+                            this.ID = Evaluat.DeCode[0];
+                        }
+                    }
+                    i++;
+                }
+                if (e == false)
+                {
+                    i = 0;
+                    while ((i < c) && (e == false))
+                    {
+                        DataField Evaluat = DataFields[i];
+                        if (Cat == "10")
+                        {
+                            if (Evaluat.Info.DataItemID[1] == "161")
+                            {
+                                e = true;
+                                this.ID = Evaluat.DeCode[0];
+                            }
+                        }
+                        i++;
+                    }
+                }
+            }
+
+            //Vehicle
+            i = 0; e = false;
+            while ((i < c) && (e == false))
+            {
+                DataField Evaluat = DataFields[i];
+                if (Cat == "10")
+                {
+                    if (Evaluat.Info.DataItemID[1] == "300")
+                    {
+                        e = true;
+                        this.Vehicle = Evaluat.DeCode[0];
+                    }
+                }
+                else
+                {
+                    if (Evaluat.Info.DataItemID[1] == "020")
+                    {
+                        e = true;
+                        this.Vehicle = Evaluat.DeCode[0];
+                    }
+                }
+                i++;
+            }
+
+        }
+
+        //Vector per moestrar en DatBlocks (DGW)
+        public string[] StringLin()
+        {
+            GetIDandV();
+            string[] Ret = new string[5];
+            Ret[0] = Cat;
+            Ret[1] = From;
+            Ret[2] = ID;
+            Ret[3] = Vehicle;
+            Ret[4] = ID_Intern;
+
+            return Ret;
+        }
     }
 
     //Representació del DataField
@@ -229,7 +347,7 @@ namespace PGTA_P1
                     }
                     else if (TYP == "010")
                     {
-                        DeCode.Add("TYP: ADS-B");
+                        DeCode.Add("ADS-B");
                     }
                     else if (TYP == "011")
                     {
@@ -317,11 +435,11 @@ namespace PGTA_P1
 
                         //LOP
                         string TOT = "" + bitsOctet[5] + "" + bitsOctet[6] + "";
-                        if (RAB == "00")
+                        if (TOT == "00")
                             DeCode.Add("TOT: Undetermined");
-                        else if (RAB == "01")
+                        else if (TOT == "01")
                             DeCode.Add("TOT: Aircraft");
-                        else if (RAB == "10")
+                        else if (TOT == "10")
                             DeCode.Add("TOT: Ground vehicle");
                         else
                             DeCode.Add("TOT: Helicopter");
@@ -721,7 +839,7 @@ namespace PGTA_P1
 
                     int Gs_Dec = BitConverter.ToInt16(Gs, 0);
                     double Gs_Kt = Gs_Dec * 0.22;
-                    DeCode.Add(Convert.ToString(Gs_Dec));
+                    DeCode.Add(Convert.ToString(Gs_Kt));
 
                     int Ta_Dec = BitConverter.ToInt32(Ta, 0);
                     double Ta_Grad = Ta_Dec * 0.0055;
@@ -1250,17 +1368,17 @@ namespace PGTA_P1
                     if (ECAT_Dec == 0)
                         DeCode.Add("No ADS-B Emitter Category Information");
                     else if (ECAT_Dec == 1)
-                        DeCode.Add("light aircraft <= 15500 lbs");
+                        DeCode.Add("light aircraft");
                     else if (ECAT_Dec == 2)
-                        DeCode.Add("15500 lbs < small aircraft <75000 lbs");
+                        DeCode.Add("small aircraft");
                     else if (ECAT_Dec == 3)
-                        DeCode.Add("75000 lbs < medium a/c < 300000 lbs");
+                        DeCode.Add("medium aircraft");
                     else if (ECAT_Dec == 4)
                         DeCode.Add("High Vortex Large");
                     else if (ECAT_Dec == 5)
-                        DeCode.Add("300000 lbs <= heavy aircraft");
+                        DeCode.Add("heavy aircraft");
                     else if (ECAT_Dec == 6)
-                        DeCode.Add("highly manoeuvrable (5g acceleration capability) and high speed(> 400 knots cruise)");
+                        DeCode.Add("highly manoeuvrable and high speed)");
                     else if (ECAT_Dec <= 9 && ECAT_Dec >= 7)
                         DeCode.Add("reserved");
                     else if (ECAT_Dec == 10)
@@ -1670,14 +1788,111 @@ namespace PGTA_P1
                     DeCode.Add(Convert.ToString(ByteInt * 1 / 32));
 
                     this.Info.units.Add("°/s");
-                }
+                } //NO TEST
                 else if (Info.DataItemID[1] == "170")
                 {
                     //I021/170 Target Identification 
+                    //TarID
+                    char[] TarID = new char[8];
+                    string DataOctet = "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
+                    char[] bitsOctet = DataOctet.ToCharArray();
+
+                    int i = 0; int h = 0; int k = 1;
+                    while (i < 8)
+                    {
+                        byte b65 = Convert.ToByte("" + bitsOctet[h] + "" + bitsOctet[h + 1] + "", 2);
+                        byte b4321 = Convert.ToByte("" + bitsOctet[h + 2] + "" + bitsOctet[h + 3] + "" + bitsOctet[h + 4] + "" + bitsOctet[h + 5] + "", 2);
+
+                        //F1: Num o Ll
+                        if (b65 == 3)
+                        {
+                            //Num
+                            string b = Convert.ToString(b4321);
+                            TarID[i] = Convert.ToChar(b);
+                        }
+                        else if (b65 == 2)
+                        {
+                            char[] Save = TarID;
+                            TarID = new Char[8 - k];
+                            int y = 0;
+                            while (y < TarID.Length)
+                            {
+                                TarID[y] = Save[y];
+                                y++;
+                            }
+                            k++;
+                        }
+                        else
+                        {
+                            //Ll
+                            if (b65 == 0)
+                            {
+                                if (b4321 == 1)
+                                    TarID[i] = 'A';
+                                else if (b4321 == 2)
+                                    TarID[i] = 'B';
+                                else if (b4321 == 3)
+                                    TarID[i] = 'C';
+                                else if (b4321 == 4)
+                                    TarID[i] = 'D';
+                                else if (b4321 == 5)
+                                    TarID[i] = 'E';
+                                else if (b4321 == 6)
+                                    TarID[i] = 'F';
+                                else if (b4321 == 7)
+                                    TarID[i] = 'G';
+                                else if (b4321 == 8)
+                                    TarID[i] = 'H';
+                                else if (b4321 == 9)
+                                    TarID[i] = 'I';
+                                else if (b4321 == 10)
+                                    TarID[i] = 'J';
+                                else if (b4321 == 11)
+                                    TarID[i] = 'K';
+                                else if (b4321 == 12)
+                                    TarID[i] = 'L';
+                                else if (b4321 == 13)
+                                    TarID[i] = 'M';
+                                else if (b4321 == 14)
+                                    TarID[i] = 'N';
+                                else if (b4321 == 15)
+                                    TarID[i] = '0';
+                            }
+                            else
+                            {
+                                if (b4321 == 0)
+                                    TarID[i] = 'P';
+                                else if (b4321 == 1)
+                                    TarID[i] = 'Q';
+                                else if (b4321 == 2)
+                                    TarID[i] = 'R';
+                                else if (b4321 == 3)
+                                    TarID[i] = 'S';
+                                else if (b4321 == 4)
+                                    TarID[i] = 'T';
+                                else if (b4321 == 5)
+                                    TarID[i] = 'U';
+                                else if (b4321 == 6)
+                                    TarID[i] = 'V';
+                                else if (b4321 == 7)
+                                    TarID[i] = 'W';
+                                else if (b4321 == 8)
+                                    TarID[i] = 'X';
+                                else if (b4321 == 9)
+                                    TarID[i] = 'Y';
+                                else if (b4321 == 10)
+                                    TarID[i] = 'Z';
+                            }
+                        }
+                        i++;
+                        h = h + 6;
+                    }
+                    DeCode.Add(new string(TarID));
                 }
                 else if (Info.DataItemID[1] == "200")
                 {
                     //I021/200 Target Status 
+
                 }
                 else if (Info.DataItemID[1] == "210")
                 {
@@ -1709,9 +1924,40 @@ namespace PGTA_P1
                 }
                 else
                 {
-                    DeCode.Add("FATAL ERROR");
+                    DeCode.Add("Don't worry bro, comming!");
                 }
             }
+        }
+
+        //Primera linia d'informació més el nom
+        public string[] LinVectNom()
+        {
+            string[] Ret = new string[3];
+            Ret[0] = ""+Info.Nom+" ("+Info.DataItemID[1]+")";
+            if (DeCode.Count != 0)
+                Ret[1] = DeCode[0];
+            else
+                Ret[1] = "No data";
+            if (Info.units.Count() != 0)
+                Ret[2] = Info.units[0];
+            else
+                Ret[2] = "-";
+
+            return Ret;
+        }
+
+        //A partir de la segona linia d'informació (sense el nom)
+        public string[] LinVect(int i)
+        {
+            string[] Ret = new string[3];
+            Ret[0] = "";
+            Ret[1] = DeCode[i];
+            if (Info.units.Count() != 0)
+                Ret[2] = Info.units[i];
+            else
+                Ret[2] = "-";
+
+            return Ret;
         }
     }
 
@@ -1809,8 +2055,4 @@ namespace PGTA_P1
 
 
     }
-
-
-
-    
 }

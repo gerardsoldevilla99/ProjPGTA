@@ -1851,6 +1851,83 @@ namespace PGTA_P1
                     DeCode.Add(FL_Dec.ToString());
                     this.Info.units.Add("ft");
                 }
+                else if (Info.DataItemID[1] == "146")
+                {
+                    //146, Selected Altitude
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("SAS: No source information provided");
+                    else
+                        DeCode.Add("SAS: Source information provided");
+                    string Sour = Convert.ToString("" + bitsOctet[1] + "" + bitsOctet[2] + "");
+                    if (Sour == "00")
+                        DeCode.Add("Source: Unknown");
+                    else if (Sour == "01")
+                        DeCode.Add("Source: Aircraft Altitude (Holding Altitude)");
+                    else if (Sour == "10")
+                        DeCode.Add("Source: MCP/FCU Selected Altitude");
+                    else
+                        DeCode.Add("Source: FMS Selected Altitude");
+                    bitsOctet[0] = '0';
+                    bitsOctet[1] = '0';
+                    bitsOctet[2] = '0';
+                    byte[] Altitude = new byte[2];
+                    string s = bitsOctet.ToString();
+                    Altitude[1] = Convert.ToByte(s);
+                    Altitude[0] = Octets.Dequeue();
+                    int Altitude_Dec = BitConverter.ToInt16(Altitude, 0)*25;
+                    this.Info.units.Add("ft");
+
+                }
+                else if (Info.DataItemID[1] == "148")
+                {
+                    //148, Final State Selected Altitude
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("Mv: Not active or unknown");
+                    else
+                        DeCode.Add("MV: Active");
+                    if (bitsOctet[1] == '0')
+                        DeCode.Add("AH: Not active or unknown");
+                    else
+                        DeCode.Add("AH: Active");
+                    if (bitsOctet[2] == '0')
+                        DeCode.Add("AM: Not active or unknown");
+                    else
+                        DeCode.Add("AH: Active");
+                    bitsOctet[0] = '0';
+                    bitsOctet[1] = '0';
+                    bitsOctet[2] = '0';
+                    byte[] Altitude = new byte[2];
+                    string s = bitsOctet.ToString();
+                    Altitude[1] = Convert.ToByte(s);
+                    Altitude[0] = Octets.Dequeue();
+                    int Altitude_Dec = BitConverter.ToInt16(Altitude, 0) * 25;
+                    this.Info.units.Add("ft");
+                }
+                else if (Info.DataItemID[1] == "151")
+                {
+                    //151 True Airspeed
+                }
+                else if (Info.DataItemID[1] == "152")
+                {
+                    //152, Magnetic Heading
+                }
+                else if (Info.DataItemID[1] == "155")
+                {
+                    //155, Barometric Vertical Rate
+                }
+                else if (Info.DataItemID[1] == "160")
+                {
+                    //160, Airborne Ground Vector
+                }
+                else if (Info.DataItemID[1] == "161")
+                {
+                    //161, Track Number
+                }
+                
 
                 // TUTTO GERARD
                 else if (Info.DataItemID[1] == "165")
@@ -1859,6 +1936,7 @@ namespace PGTA_P1
                 }
                 else if (Info.DataItemID[1] == "170")
                 {
+
                     //I021/170 Target Identification 
                 }
                 else if (Info.DataItemID[1] == "200")

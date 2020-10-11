@@ -1886,7 +1886,7 @@ namespace PGTA_P1
                     string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                     char[] bitsOctet = DataOctet.ToCharArray();
                     if (bitsOctet[0] == '0')
-                        DeCode.Add("Mv: Not active or unknown");
+                        DeCode.Add("MV: Not active or unknown");
                     else
                         DeCode.Add("MV: Active");
                     if (bitsOctet[1] == '0')
@@ -1905,27 +1905,138 @@ namespace PGTA_P1
                     Altitude[1] = Convert.ToByte(s);
                     Altitude[0] = Octets.Dequeue();
                     int Altitude_Dec = BitConverter.ToInt16(Altitude, 0) * 25;
+                    DeCode.Add(Convert.ToString(Altitude_Dec));
                     this.Info.units.Add("ft");
+                }
+                else if (Info.DataItemID[1] == "150")
+                {
+                    //151 True Airspeed
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+                    char IM = bitsOctet[0];
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("IM: Air Speed = IAS");
+                    else
+                        DeCode.Add("IM: Air Speed = Mach");
+                    bitsOctet[0] = '0';
+                    byte[] IAS = new byte[2];
+                    string s = bitsOctet.ToString();
+                    IAS[1] = Convert.ToByte(s);
+                    IAS[0] = Octets.Dequeue();
+                    double IAS_Dec = BitConverter.ToInt16(IAS, 0);
+                    if (IM == '0')
+                    {
+                        IAS_Dec = IAS_Dec * (2 ^ (-14));
+                        DeCode.Add(IAS_Dec.ToString());
+                        Info.units.Add("NM/s");
+                    }
+                    else
+                    {
+                        IAS_Dec = IAS_Dec * (0.001);
+                        DeCode.Add(IAS_Dec.ToString());
+                    }
+
                 }
                 else if (Info.DataItemID[1] == "151")
                 {
                     //151 True Airspeed
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+                    char IM = bitsOctet[0];
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("RE: Value in defined range");
+                    else
+                        DeCode.Add("RE: Value exceeds defined rang");
+                    bitsOctet[0] = '0';
+                    byte[] TAS = new byte[2];
+                    string s = bitsOctet.ToString();
+                    TAS[1] = Convert.ToByte(s);
+                    TAS[0] = Octets.Dequeue();
+                    int TAS_Dec = BitConverter.ToInt16(TAS,0);
+                    DeCode.Add(TAS_Dec.ToString());
+                    Info.units.Add("knot");
                 }
                 else if (Info.DataItemID[1] == "152")
                 {
                     //152, Magnetic Heading
+                    byte[] MG = new byte[2];
+                    MG[1] = Octets.Dequeue();
+                    MG[0] = Octets.Dequeue();
+                    int MG_Dec = BitConverter.ToInt16(MG, 0)*360/(2^16);
+                    DeCode.Add(MG_Dec.ToString());
+                    Info.units.Add("º");
                 }
                 else if (Info.DataItemID[1] == "155")
                 {
                     //155, Barometric Vertical Rate
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+                    char RE = bitsOctet[0];
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("RE: Value in defined range");
+                    else
+                        DeCode.Add("RE: Value exceeds defined rang");
+                    bitsOctet[0] = '0';
+                    byte[] BVR = new byte[2];
+                    string s = bitsOctet.ToString();
+                    BVR[1] = Convert.ToByte(s);
+                    BVR[0] = Octets.Dequeue();
+                    double BVR_Dec = BitConverter.ToDouble(BVR, 0)*6.25;
+                    DeCode.Add(BVR_Dec.ToString());
+                    Info.units.Add("feet/minute");
+                }
+                else if (Info.DataItemID[1] == "157")
+                {
+                    //160, Airborne Ground Vector
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+                    char RE = bitsOctet[0];
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("RE: Value in defined range");
+                    else
+                        DeCode.Add("RE: Value exceeds defined rang");
+                    bitsOctet[0] = '0';
+                    byte[] GVR = new byte[2];
+                    string s = bitsOctet.ToString();
+                    GVR[1] = Convert.ToByte(s);
+                    GVR[0] = Octets.Dequeue();
+                    double GVR_Dec = BitConverter.ToDouble(GVR, 0) * 6.25;
+                    DeCode.Add(GVR_Dec.ToString());
+                    Info.units.Add("feet/minute");
                 }
                 else if (Info.DataItemID[1] == "160")
                 {
                     //160, Airborne Ground Vector
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+                    char RE = bitsOctet[0];
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("RE: Value in defined range");
+                    else
+                        DeCode.Add("RE: Value exceeds defined rang");
+                    bitsOctet[0] = '0';
+                    byte[] GS = new byte[2];
+                    string s = bitsOctet.ToString();
+                    GS[1] = Convert.ToByte(s);
+                    GS[0] = Octets.Dequeue();
+                    double GS_Dec = BitConverter.ToDouble(GS, 0)/(2^(14));
+                    DeCode.Add(GS_Dec.ToString());
+                    Info.units.Add("NM/s");
+                    byte[] TA = new byte[2];
+                    TA[1] = Octets.Dequeue();
+                    TA[0] = Octets.Dequeue();
+                    double TA_Dec = BitConverter.ToDouble(TA, 0) *360/ (2 ^ (16));
+                    DeCode.Add(TA_Dec.ToString());
+                    Info.units.Add("º");
                 }
                 else if (Info.DataItemID[1] == "161")
                 {
                     //161, Track Number
+                    byte[] TN = new byte[2];
+                    TN[1] = Octets.Dequeue();
+                    TN[0] = Octets.Dequeue();
+                    double TN_Dec = BitConverter.ToDouble(TN, 0);
+                    DeCode.Add(TN_Dec.ToString());
                 }
                 
 

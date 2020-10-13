@@ -1527,7 +1527,7 @@ namespace PGTA_P1
                         Reply[i - 4] = bitsOctet[i];
                         i++;
                     }
-                    DeCode.Add(Reply.ToString());
+                    DeCode.Add(new string(bitsOctet));
                 }
                 else if (Info.DataItemID[1] == "071")
                 {
@@ -1599,7 +1599,6 @@ namespace PGTA_P1
                     this.Info.units.Add("s");
 
                 }
-
                 else if (Info.DataItemID[1] == "075")
                 {
                     //075, Time of Message Reception for Velocity
@@ -1661,10 +1660,6 @@ namespace PGTA_P1
                 else if (Info.DataItemID[1] == "080")
                 {
                     //080, Target Address
-                    string TAT = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
-                    DeCode.Add(TAT);
-                    DeCode.Add(Convert.ToString(Conversion.Hex(TAT)));
-                }
                     byte[] TA = new byte[4];
                     TA[3] = 0;
                     TA[2] = Octets.Dequeue();
@@ -1678,21 +1673,6 @@ namespace PGTA_P1
                     //090, Quality Indicators
                     string dataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                     char[] dataVec = dataOctet.ToCharArray();
-
-                    DeCode.Add((Convert.ToInt32("" + dataVec[0] + "" + dataVec[1] + "" + dataVec[2] + ""), 2).ToString());
-                    DeCode.Add((Convert.ToInt32("" + dataVec[3] + "" + dataVec[4] + "" + dataVec[5] + "" + dataVec[6] + ""), 2).ToString());
-                    if (dataVec[7] == '0')
-                    { }
-                    else
-                    {
-                        dataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
-                        dataVec = dataOctet.ToCharArray();
-                        DeCode.Add((Convert.ToInt32("" + dataVec[0] + "")).ToString());
-                        DeCode.Add((Convert.ToInt32("" + dataVec[1] + "" + dataVec[2] + ""), 2).ToString());
-                        DeCode.Add((Convert.ToInt32("" + dataVec[3] + "" + dataVec[4] + "" + dataVec[5] + "" + dataVec[6] + ""), 2).ToString());
-                        if (dataVec[7] == '0')
-                        {
-=======
 
                     //NUCNAC
                     string NUCNAC = "" + dataVec[0] + "" + dataVec[1] + "" + dataVec[2] + "";
@@ -1728,19 +1708,6 @@ namespace PGTA_P1
                         {
                             dataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                             dataVec = dataOctet.ToCharArray();
-                            if (dataVec[2] == '0')
-                                DeCode.Add("SIL: measured per flight-hour");
-                            else
-                                DeCode.Add("measured per sample");
-                            DeCode.Add((Convert.ToInt32("" + dataVec[3] + "" + dataVec[4] + ""), 2).ToString());
-                            DeCode.Add((Convert.ToInt32("" + dataVec[5] + "" + dataVec[6] + ""), 2).ToString());
-                            if (dataVec[7] == 0)
-                            { }
-                            else
-                            {
-                                dataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
-                                dataVec = dataOctet.ToCharArray();
-                                int PIC = Convert.ToInt16(("" + dataVec[0] + "" + dataVec[1] + "" + "" + dataVec[2] + "" + dataVec[3] + ""), 2);
 
                             //SIL2
                             DeCode.Add("Sil sup: " + dataVec[2] + "");
@@ -1795,22 +1762,11 @@ namespace PGTA_P1
                                 else if (PIC == 0)
                                     DeCode.Add("PIC: No integrity (or > 20.0 NM)");
                                 else
-                                { }
-                                if (dataVec[7] == 0)
-                                { }
-                                else
                                     DeCode.Add("PIC: Not defined");
                             }
                         }
-
-
                     }
-
-
-
-                    // TUTTO GERARD
-
-
+                }
                 else if (Info.DataItemID[1] == "110")
                 {
                     //110, Trajectory Intent
@@ -1959,18 +1915,19 @@ namespace PGTA_P1
                     Lat[2] = Octets.Dequeue();
                     Lat[1] = Octets.Dequeue();
                     Lat[0] = Octets.Dequeue();
-                    double Lat_Dec = BitConverter.ToInt32(Lat, 0) * 180 / (2 ^ 23);
+                    int A = BitConverter.ToInt32(Lat, 0); double P = 180.0 / 8388608;
+                    double Lat_Dec = Convert.ToDouble(A) * P;
                     DeCode.Add(Lat_Dec.ToString());
-                    this.Info.units.Add("degrees");
+                    this.Info.units.Add("º");
 
                     byte[] Lon = new byte[4];
                     Lon[3] = 0;
                     Lon[2] = Octets.Dequeue();
                     Lon[1] = Octets.Dequeue();
                     Lon[0] = Octets.Dequeue();
-                    double Lon_Dec = BitConverter.ToInt32(Lon, 0) * 180 / (2 ^ 23);
+                    double Lon_Dec = Convert.ToDouble(BitConverter.ToInt32(Lon, 0)) * 180 / 8388608;
                     DeCode.Add(Lon_Dec.ToString());
-                    this.Info.units.Add("degrees");
+                    this.Info.units.Add("º");
                 }
                 else if (Info.DataItemID[1] == "131")
                 {
@@ -1980,7 +1937,7 @@ namespace PGTA_P1
                     Lat[2] = Octets.Dequeue();
                     Lat[1] = Octets.Dequeue();
                     Lat[0] = Octets.Dequeue();
-                    double Lat_Dec = BitConverter.ToInt32(Lat, 0) * 180 / (2 ^ 30);
+                    double Lat_Dec = Convert.ToDouble(BitConverter.ToInt32(Lat, 0)) * 180 / (1073741824);
                     DeCode.Add(Lat_Dec.ToString());
                     this.Info.units.Add("degrees");
 
@@ -1989,18 +1946,23 @@ namespace PGTA_P1
                     Lon[2] = Octets.Dequeue();
                     Lon[1] = Octets.Dequeue();
                     Lon[0] = Octets.Dequeue();
-                    double Lon_Dec = BitConverter.ToInt32(Lon, 0) * 180 / (2 ^ 30);
+                    double Lon_Dec = Convert.ToDouble(BitConverter.ToInt32(Lon, 0)) * 180 / (1073741824);
                     DeCode.Add(Lon_Dec.ToString());
                     this.Info.units.Add("degrees");
                 }
                 else if (Info.DataItemID[1] == "132")
                 {
                     //132, Message Amplitude
-                    byte[] MAM = new byte[2];
-                    MAM[1] = 0;
-                    MAM[0] = Octets.Dequeue();
-                    int MAM_Dec = BitConverter.ToInt16(MAM, 0);
-                    DeCode.Add(MAM_Dec.ToString());
+                    byte Ax = Octets.Dequeue();
+
+                    int Ax_Dec;
+                    if (Ax > 255 / 2)
+                    {
+                        Ax_Dec = -1 * (255 + 1) + Ax;
+                    }
+                    else
+                        Ax_Dec = Ax;
+                    DeCode.Add(Ax_Dec.ToString());
                     this.Info.units.Add("dBm");
                 }
                 else if (Info.DataItemID[1] == "140")
@@ -2009,7 +1971,7 @@ namespace PGTA_P1
                     byte[] GH = new byte[2];
                     GH[1] = Octets.Dequeue();
                     GH[0] = Octets.Dequeue();
-                    double GH_Dec = BitConverter.ToInt16(GH, 0)*6.25;
+                    double GH_Dec = BitConverter.ToInt16(GH, 0) * 6.25;
                     DeCode.Add(GH_Dec.ToString());
                     this.Info.units.Add("ft");
                 }
@@ -2041,16 +2003,25 @@ namespace PGTA_P1
                         DeCode.Add("Source: MCP/FCU Selected Altitude");
                     else
                         DeCode.Add("Source: FMS Selected Altitude");
-                    bitsOctet[0] = '0';
-                    bitsOctet[1] = '0';
-                    bitsOctet[2] = '0';
+                    if (bitsOctet[3] == '1')
+                    {
+                        bitsOctet[0] = '1';
+                        bitsOctet[1] = '1';
+                        bitsOctet[2] = '1';
+                    }
+                    else
+                    {
+                        bitsOctet[0] = '0';
+                        bitsOctet[1] = '0';
+                        bitsOctet[2] = '0';
+                    }
                     byte[] Altitude = new byte[2];
-                    string s = bitsOctet.ToString();
-                    Altitude[1] = Convert.ToByte(s);
+                    Altitude[1] = Convert.ToByte(new string(bitsOctet), 2);
                     Altitude[0] = Octets.Dequeue();
-                    int Altitude_Dec = BitConverter.ToInt16(Altitude, 0)*25;
+                    int Altitude_Dec = BitConverter.ToInt16(Altitude, 0) * 25;
+                    this.Info.units.Add("-");
+                    this.Info.units.Add("-");
                     this.Info.units.Add("ft");
-
                 }
                 else if (Info.DataItemID[1] == "148")
                 {
@@ -2069,9 +2040,18 @@ namespace PGTA_P1
                         DeCode.Add("AM: Not active or unknown");
                     else
                         DeCode.Add("AH: Active");
-                    bitsOctet[0] = '0';
-                    bitsOctet[1] = '0';
-                    bitsOctet[2] = '0';
+                    if (bitsOctet[3] == '1')
+                    {
+                        bitsOctet[0] = '1';
+                        bitsOctet[1] = '1';
+                        bitsOctet[2] = '1';
+                    }
+                    else
+                    {
+                        bitsOctet[0] = '0';
+                        bitsOctet[1] = '0';
+                        bitsOctet[2] = '0';
+                    }
                     byte[] Altitude = new byte[2];
                     string s = bitsOctet.ToString();
                     Altitude[1] = Convert.ToByte(s);
@@ -2079,7 +2059,7 @@ namespace PGTA_P1
                     int Altitude_Dec = BitConverter.ToInt16(Altitude, 0) * 25;
                     DeCode.Add(Convert.ToString(Altitude_Dec));
                     this.Info.units.Add("ft");
-                }
+                } //NO TEST
                 else if (Info.DataItemID[1] == "150")
                 {
                     //151 True Airspeed
@@ -2124,7 +2104,7 @@ namespace PGTA_P1
                     string s = bitsOctet.ToString();
                     TAS[1] = Convert.ToByte(s);
                     TAS[0] = Octets.Dequeue();
-                    int TAS_Dec = BitConverter.ToInt16(TAS,0);
+                    int TAS_Dec = BitConverter.ToInt16(TAS, 0);
                     DeCode.Add(TAS_Dec.ToString());
                     Info.units.Add("knot");
                 }
@@ -2134,7 +2114,7 @@ namespace PGTA_P1
                     byte[] MG = new byte[2];
                     MG[1] = Octets.Dequeue();
                     MG[0] = Octets.Dequeue();
-                    int MG_Dec = BitConverter.ToInt16(MG, 0)*360/(2^16);
+                    int MG_Dec = BitConverter.ToInt16(MG, 0) * 360 / (2 ^ 16);
                     DeCode.Add(MG_Dec.ToString());
                     Info.units.Add("º");
                 }
@@ -2145,17 +2125,20 @@ namespace PGTA_P1
                     char[] bitsOctet = DataOctet.ToCharArray();
                     char RE = bitsOctet[0];
                     if (bitsOctet[0] == '0')
+                    {
                         DeCode.Add("RE: Value in defined range");
+                        byte[] BVR = new byte[2];
+                        if(bitsOctet[1]== '1')
+                            bitsOctet[0] = '1';
+                        BVR[1] = Convert.ToByte(new string(bitsOctet), 2);
+                        BVR[0] = Octets.Dequeue();
+                        double BVR_Dec = BitConverter.ToInt16(BVR, 0) * 6.25;
+                        DeCode.Add(BVR_Dec.ToString());
+                        Info.units.Add("-");
+                        Info.units.Add("feet/minute"); 
+                    }
                     else
                         DeCode.Add("RE: Value exceeds defined rang");
-                    bitsOctet[0] = '0';
-                    byte[] BVR = new byte[2];
-                    string s = bitsOctet.ToString();
-                    BVR[1] = Convert.ToByte(s);
-                    BVR[0] = Octets.Dequeue();
-                    double BVR_Dec = BitConverter.ToDouble(BVR, 0)*6.25;
-                    DeCode.Add(BVR_Dec.ToString());
-                    Info.units.Add("feet/minute");
                 }
                 else if (Info.DataItemID[1] == "157")
                 {
@@ -2170,9 +2153,9 @@ namespace PGTA_P1
                     bitsOctet[0] = '0';
                     byte[] GVR = new byte[2];
                     string s = bitsOctet.ToString();
-                    GVR[1] = Convert.ToByte(s);
+                    GVR[1] = Convert.ToByte(new string(bitsOctet), 2);
                     GVR[0] = Octets.Dequeue();
-                    double GVR_Dec = BitConverter.ToDouble(GVR, 0) * 6.25;
+                    double GVR_Dec = BitConverter.ToInt16(GVR, 0) * 6.25;
                     DeCode.Add(GVR_Dec.ToString());
                     Info.units.Add("feet/minute");
                 }
@@ -2183,23 +2166,29 @@ namespace PGTA_P1
                     char[] bitsOctet = DataOctet.ToCharArray();
                     char RE = bitsOctet[0];
                     if (bitsOctet[0] == '0')
+                    {
                         DeCode.Add("RE: Value in defined range");
+                        if(bitsOctet[1] == '1')
+                            bitsOctet[0] = '1';
+                        byte[] GS = new byte[2];
+                        GS[1] = Convert.ToByte(new string(bitsOctet), 2);
+                        GS[0] = Octets.Dequeue();
+                        double GS_Dec = Convert.ToDouble(BitConverter.ToInt16(GS, 0)) / (16384);
+                        DeCode.Add(GS_Dec.ToString());
+                        Info.units.Add("NM/s");
+                        byte[] TA = new byte[4];
+                        TA[3] = 0;
+                        TA[2] = 0;
+                        TA[1] = Octets.Dequeue();
+                        TA[0] = Octets.Dequeue();
+                        double TA_Dec = Convert.ToDouble(BitConverter.ToInt32(TA, 0)) * 360 / (65536);
+                        DeCode.Add(TA_Dec.ToString());
+                        Info.units.Add("-");
+                        Info.units.Add("º");
+                    }
                     else
                         DeCode.Add("RE: Value exceeds defined rang");
-                    bitsOctet[0] = '0';
-                    byte[] GS = new byte[2];
-                    string s = bitsOctet.ToString();
-                    GS[1] = Convert.ToByte(s);
-                    GS[0] = Octets.Dequeue();
-                    double GS_Dec = BitConverter.ToDouble(GS, 0)/(2^(14));
-                    DeCode.Add(GS_Dec.ToString());
-                    Info.units.Add("NM/s");
-                    byte[] TA = new byte[2];
-                    TA[1] = Octets.Dequeue();
-                    TA[0] = Octets.Dequeue();
-                    double TA_Dec = BitConverter.ToDouble(TA, 0) *360/ (2 ^ (16));
-                    DeCode.Add(TA_Dec.ToString());
-                    Info.units.Add("º");
+                    
                 }
                 else if (Info.DataItemID[1] == "161")
                 {
@@ -2207,15 +2196,9 @@ namespace PGTA_P1
                     byte[] TN = new byte[2];
                     TN[1] = Octets.Dequeue();
                     TN[0] = Octets.Dequeue();
-                    double TN_Dec = BitConverter.ToDouble(TN, 0);
+                    double TN_Dec = BitConverter.ToInt16(TN, 0);
                     DeCode.Add(TN_Dec.ToString());
                 }
-                    // TUTTO GERARD
-                    
-
-
-                }
-                //G
                 else if (Info.DataItemID[1] == "165")
                 {
                     //I021/165 Track Angle Rate 
@@ -2364,7 +2347,7 @@ namespace PGTA_P1
                 }
                 else
                 {
-                    DeCode.Add("Don't worry bro, comming!");
+                    DeCode.Add("-");
                 }
             }
         }

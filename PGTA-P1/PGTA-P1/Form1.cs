@@ -215,7 +215,7 @@ namespace PGTA_P1
                     if ((CAT == "10") || (CAT == "21"))
                     {
                         DataBlockList.Add(new DataBlock(BytesSave, Cat, DataBlockList.Count())); //Afegim a la llista general
-                        DT.Rows.Add(DataBlockList.Last().StringLin());
+                        
                         if (DataBlockList.Last().From == "TYP: Mode S multilateration")
                             Multi = true;
                         else if (DataBlockList.Last().From == "TYP: PSR")
@@ -232,6 +232,8 @@ namespace PGTA_P1
                             DT.Columns.Add("DataBlock Id");
                             numDT = 0;
                         }
+
+                        DT.Rows.Add(DataBlockList.Last().StringLin());
                     }
                     else
                     {
@@ -287,6 +289,7 @@ namespace PGTA_P1
                     AllCatBTN.Visible = false;
                     Cat021BTN.Visible = false;
                     AdsBTN.Visible = false;
+                    Cat010BTN.BorderStyle = BorderStyle.FixedSingle;
                     if ((Multi == true) && (Psr == true))
                     {
                         MultiBTN.Visible = true;
@@ -300,6 +303,7 @@ namespace PGTA_P1
                         MultiBTN.Visible = true;
                         PSRBTN.Visible = false;
                         AllSBTN.Visible = false;
+                        MultiBTN.BorderStyle = BorderStyle.FixedSingle;
                         SourView = "TYP: Mode S multilateration";
                         CatView = "10";
                     }
@@ -310,6 +314,7 @@ namespace PGTA_P1
                         AllSBTN.Visible = false;
                         SourView = "TYP: PSR";
                         CatView = "10";
+                        PSRBTN.BorderStyle = BorderStyle.FixedSingle;
                     }
                 }
                 else
@@ -323,12 +328,20 @@ namespace PGTA_P1
                     AllSBTN.Visible = false;
                     SourView = "ADS-B";
                     CatView = "21";
+                    Cat021BTN.BorderStyle = BorderStyle.FixedSingle;
+                    AdsBTN.BorderStyle = BorderStyle.FixedSingle;
                 }
             }
             else
             {
                 DataInf.Text = "No data loaded";
                 DataInf.ForeColor = Color.Red;
+                TextVisorPanel.BringToFront();
+                if (DataBlockList.Count != 0)
+                {
+                    DataInf.Text = "Data loaded";
+                    DataInf.ForeColor = Color.Green;
+                }
             }
         }
 

@@ -2128,14 +2128,14 @@ namespace PGTA_P1
                     {
                         DeCode.Add("RE: Value in defined range");
                         byte[] BVR = new byte[2];
-                        if(bitsOctet[1]== '1')
+                        if (bitsOctet[1] == '1')
                             bitsOctet[0] = '1';
                         BVR[1] = Convert.ToByte(new string(bitsOctet), 2);
                         BVR[0] = Octets.Dequeue();
                         double BVR_Dec = BitConverter.ToInt16(BVR, 0) * 6.25;
                         DeCode.Add(BVR_Dec.ToString());
                         Info.units.Add("-");
-                        Info.units.Add("feet/minute"); 
+                        Info.units.Add("feet/minute");
                     }
                     else
                         DeCode.Add("RE: Value exceeds defined rang");
@@ -2168,7 +2168,7 @@ namespace PGTA_P1
                     if (bitsOctet[0] == '0')
                     {
                         DeCode.Add("RE: Value in defined range");
-                        if(bitsOctet[1] == '1')
+                        if (bitsOctet[1] == '1')
                             bitsOctet[0] = '1';
                         byte[] GS = new byte[2];
                         GS[1] = Convert.ToByte(new string(bitsOctet), 2);
@@ -2188,7 +2188,7 @@ namespace PGTA_P1
                     }
                     else
                         DeCode.Add("RE: Value exceeds defined rang");
-                    
+
                 }
                 else if (Info.DataItemID[1] == "161")
                 {
@@ -2315,32 +2315,507 @@ namespace PGTA_P1
                 else if (Info.DataItemID[1] == "200")
                 {
                     //I021/200 Target Status 
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
 
+                    //ICF 
+                    if (bitsOctet[0] == '0')
+                        DeCode.Add("ICF: No intent change active");
+                    else
+                        DeCode.Add("ICF: Intent change flag raised");
+
+                    //LNAV 
+                    if (bitsOctet[1] == '0')
+                        DeCode.Add("LNAV: LNAV Mode engaged");
+                    else
+                        DeCode.Add("LNAV: LNAV Mode not engaged");
+
+                    //PS 
+                    byte PS = Convert.ToByte("" + bitsOctet[3] + "" + bitsOctet[4] + "" + bitsOctet[5] + "", 2);
+                    if (PS == 0)
+                        DeCode.Add("PS: No emergency / not reported");
+                    else if (PS == 1)
+                        DeCode.Add("PS: General emergency");
+                    else if (PS == 2)
+                        DeCode.Add("PS: Lifeguard / medical emergency");
+                    else if (PS == 3)
+                        DeCode.Add("PS: Minimum fuel");
+                    else if (PS == 4)
+                        DeCode.Add("PS: No communications");
+                    else if (PS == 5)
+                        DeCode.Add("PS: Unlawful interference");
+                    else
+                        DeCode.Add("PS: “Downed” Aircraf");
+
+                    //SS
+                    byte SS = Convert.ToByte("" + bitsOctet[6] + "" + bitsOctet[7] + "", 2);
+                    if (SS == 0)
+                        DeCode.Add("SS: No condition reported");
+                    else if (SS == 1)
+                        DeCode.Add("SS: Permanent Alert (Emergency condition)");
+                    else if (SS == 2)
+                        DeCode.Add("SS: Temporary Alert (change in Mode 3/A Code other than emergency)");
+                    else
+                        DeCode.Add("SS: SPI set");
                 }
                 else if (Info.DataItemID[1] == "210")
                 {
                     //I021/210 MOPS Version
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+
+                    //VNS
+                    if (bitsOctet[1] == '0')
+                        DeCode.Add("VNS: The MOPS Version is supported by the GS");
+                    else
+                        DeCode.Add("VSN: The MOPS Version is not supported by the GS");
+
+                    //VN
+                    byte SS = Convert.ToByte("" + bitsOctet[2] + "" + bitsOctet[3] + "" + bitsOctet[4] + "", 2);
+                    if (SS == 0)
+                        DeCode.Add("VN: ED102/DO-260 [Ref. 8]");
+                    else if (SS == 1)
+                        DeCode.Add("VN: DO-260A [Ref. 9]");
+                    else
+                        DeCode.Add("VN: ED102A/DO-260B [Ref. 11]");
+
+                    //LTT
+                    byte PS = Convert.ToByte("" + bitsOctet[3] + "" + bitsOctet[4] + "" + bitsOctet[5] + "", 2);
+                    if (PS == 0)
+                        DeCode.Add("LTT: Othe");
+                    else if (PS == 1)
+                        DeCode.Add("LTT: UAT");
+                    else if (PS == 2)
+                        DeCode.Add("LTT: 1090 ES");
+                    else if (PS == 3)
+                        DeCode.Add("LTT: VDL 4");
+                    else
+                        DeCode.Add("LTT: Not assigned");
+                }
+                else if (Info.DataItemID[1] == "220")
+                {
+                    //I021/220 Met Information
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+
+                    //WS
+                    if (bitsOctet[0] == '1')
+                    {
+                        byte Data = Octets.Dequeue();
+                        DeCode.Add("WS: " + Data + "");
+                        this.Info.units.Add("knot");
+                    }
+
+                    //WD
+                    if (bitsOctet[1] == '1')
+                    {
+                        byte Data = Octets.Dequeue();
+                        DeCode.Add("WD: " + Data + "");
+                        this.Info.units.Add("º");
+                    }
+
+                    //TMP
+                    if (bitsOctet[2] == '1')
+                    {
+                        byte Data = Octets.Dequeue();
+                        int Ax_Dec;
+                        if (Data > 255 / 2)
+                        {
+                            Ax_Dec = -1 * (255 + 1) + Data;
+                        }
+                        else
+                            Ax_Dec = Data;
+                        DeCode.Add("TMP: " + Ax_Dec + "");
+                        this.Info.units.Add("ºC");
+                    }
+
+                    //TRB
+                    if (bitsOctet[3] == '1')
+                    {
+                        byte Data = Octets.Dequeue();
+                        DeCode.Add("TRB: " + Data + "");
+                        this.Info.units.Add("-");
+                    }
                 }
                 else if (Info.DataItemID[1] == "230")
                 {
                     //I021/230 Roll Angle
+                    byte[] Xc = new byte[2];
+                    Xc[1] = Octets.Dequeue();
+                    Xc[0] = Octets.Dequeue();
+
+                    int ByteInt = BitConverter.ToInt16(Xc, 0);
+                    double X = ByteInt * 0.01;
+                    DeCode.Add(Convert.ToString(X));
+
+                    this.Info.units.Add("º");
                 }
                 else if (Info.DataItemID[1] == "250")
                 {
-                    //I021/250 Mode S MB Data 
-                }
+                    //Item 250, Mode S MB Data
+                    int Rep = Octets.Dequeue();
+                    string DataOctet = "";
+                    int i = 0;
+                    while (i < Rep - 1)
+                    {
+                        DataOctet = "" + DataOctet + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
+                        i++;
+                    }
+
+                    char[] bitsOctet = DataOctet.ToCharArray();
+                    char[] BDS1 = new char[4]; char[] BDS2 = new char[4];
+                    i = 0;
+                    while (i < 4)
+                    {
+                        BDS1[i] = bitsOctet[i];
+                        BDS2[i] = bitsOctet[i + 4];
+                        i++;
+                    }
+                    DeCode.Add(DataOctet);
+                    DeCode.Add(new string(BDS1));
+                    DeCode.Add(new string(BDS2));
+                } //NO TEST
                 else if (Info.DataItemID[1] == "260")
                 {
                     //I021/260 ACAS Resolution Advisory Report
-                }
+                    int i = 0;
+                    string DataOctet = "";
+                    while (i < 7)
+                    {
+                        DataOctet = "" + DataOctet + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
+                        i++;
+                    }
+                } //NO TEST
                 else if (Info.DataItemID[1] == "271")
                 {
                     //I021/271 Surface Capabilities and Characteristics
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet = DataOctet.ToCharArray();
+
+                    //POA
+                    if (bitsOctet[2] == '0')
+                        DeCode.Add("POA: Position transmitted is not ADS-B position reference point");
+                    else
+                        DeCode.Add("POA: Position transmitted is the ADS-B position reference point");
+
+                    //CDTI/S
+                    if (bitsOctet[3] == '0')
+                        DeCode.Add("CDTI/S: CDTI not operationa");
+                    else
+                        DeCode.Add("CDTI/S: CDTI operational");
+
+                    //B2 low
+                    if (bitsOctet[4] == '0')
+                        DeCode.Add("B2 low: ≥ 70 Watts");
+                    else
+                        DeCode.Add("B2 low: < 70 Watts");
+
+                    //RAS
+                    if (bitsOctet[5] == '0')
+                        DeCode.Add("RAS: Aircraft not receiving ATC-services");
+                    else
+                        DeCode.Add("RAS: Aircraft receiving ATC services");
+
+                    //IDENT
+                    if (bitsOctet[6] == '0')
+                        DeCode.Add("IDENT: IDENT switch not active");
+                    else
+                        DeCode.Add("IDENT: IDENT switch active");
+
+                    //FX
+                    if (bitsOctet[7] == '1')
+                    {
+                        DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                        bitsOctet = DataOctet.ToCharArray();
+
+                        byte LW = Convert.ToByte("" + bitsOctet[4] + "" + bitsOctet[5] + "" + bitsOctet[6] + "" + bitsOctet[6] + "", 2);
+                        if (LW == 0)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 15 W < 11.5");
+                        }
+                        else if (LW == 1)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 15 W < 23");
+                        }
+                        else if (LW == 2)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 25 W < 28.5");
+                        }
+                        else if (LW == 3)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 25 W < 34");
+                        }
+                        else if (LW == 4)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 35 W < 33");
+                        }
+                        else if (LW == 5)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 35 W < 38");
+                        }
+                        else if (LW == 6)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 45 W < 39.5");
+                        }
+                        else if (LW == 7)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 45 W < 45");
+                        }
+                        else if (LW == 8)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 55 W < 45");
+                        }
+                        else if (LW == 9)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 55 W < 52");
+                        }
+                        else if (LW == 10)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 65 W < 59.5");
+                        }
+                        else if (LW == 11)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 65 W < 67");
+                        }
+                        else if (LW == 12)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 75 W < 72.5");
+                        }
+                        else if (LW == 13)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 75 W < 80");
+                        }
+                        else if (LW == 14)
+                        {
+                            DeCode.Add("L+W (V1,V2): L < 85 W < 80");
+                        }
+                        else
+                        {
+                            DeCode.Add("L+W (V1): L < 85 W > 80");
+                            DeCode.Add("L+W (V2): L>85 or W > 80");
+                        }
+                    }
                 }
                 else if (Info.DataItemID[1] == "295")
                 {
                     //I021/295 Data Ages 
-                }
+                    string DataOctet1 = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet1 = DataOctet1.ToCharArray();
+                    string DataOctet2 = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet2 = DataOctet2.ToCharArray();
+                    string DataOctet3 = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet3 = DataOctet3.ToCharArray();
+                    string DataOctet4 = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet4 = DataOctet4.ToCharArray();
+                    DeCode.Add("-");
+
+                    //AOS
+                    if (bitsOctet1[0] == '1')
+                    {
+                        DeCode.Add("Aircraft Operational Status age (295-1)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //TRD
+                    if (bitsOctet1[1] == '1')
+                    {
+                        DeCode.Add("Target Report Descriptor Age (295-2)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //M3A
+                    if (bitsOctet1[2] == '1')
+                    {
+                        DeCode.Add("Mode 3/A Age Age (295-3)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //QI
+                    if (bitsOctet1[3] == '1')
+                    {
+                        DeCode.Add("Quality Indicators Age (295-4)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //TI
+                    if (bitsOctet1[4] == '1')
+                    {
+                        DeCode.Add("Trajectory Intent Age (295-5)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //MAM
+                    if (bitsOctet1[5] == '1')
+                    {
+                        DeCode.Add("Message Amplitude Age (295-6)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //GH
+                    if (bitsOctet1[6] == '1')
+                    {
+                        DeCode.Add("Geometric Heighte Age (295-7)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //FL
+                    if (bitsOctet2[0] == '1')
+                    {
+                        DeCode.Add("Flight Level Age (295-8)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //ISA
+                    if (bitsOctet2[1] == '1')
+                    {
+                        DeCode.Add("Intermediate State Selected Altitude Age (295-9)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //FSA
+                    if (bitsOctet2[2] == '1')
+                    {
+                        DeCode.Add("Final State Selected Altitude Age (295-10)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //AS
+                    if (bitsOctet2[3] == '1')
+                    {
+                        DeCode.Add("Air Speed Age (295-11)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //TAS
+                    if (bitsOctet2[4] == '1')
+                    {
+                        DeCode.Add("True Air Speed Age (295-12)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //MH
+                    if (bitsOctet2[5] == '1')
+                    {
+                        DeCode.Add("Magnetic Heading Age (295-13)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //BVR
+                    if (bitsOctet2[6] == '1')
+                    {
+                        DeCode.Add("Barometric Vertical Rate Age (295-14)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //GVR
+                    if (bitsOctet3[0] == '1')
+                    {
+                        DeCode.Add("Geometric Vertical Rate Age (295-15)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //GV
+                    if (bitsOctet3[1] == '1')
+                    {
+                        DeCode.Add("Ground Vector Age (295-16)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //TAR
+                    if (bitsOctet3[2] == '1')
+                    {
+                        DeCode.Add("Track Angle Rate Age (295-17)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //TI
+                    if (bitsOctet3[3] == '1')
+                    {
+                        DeCode.Add("Target Identification Age (295-18)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //TI
+                    if (bitsOctet3[4] == '1')
+                    {
+                        DeCode.Add("Target Status Age (295-19)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //MET
+                    if (bitsOctet3[5] == '1')
+                    {
+                        DeCode.Add("Met Information Age (295-20)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //ROA
+                    if (bitsOctet3[6] == '1')
+                    {
+                        DeCode.Add("Roll Angle Age (295-21)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //ARA
+                    if (bitsOctet4[0] == '1')
+                    {
+                        DeCode.Add("ACAS Resolution Advisory Age (295-22)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+
+                    //SCC
+                    if (bitsOctet4[0] == '1')
+                    {
+                        DeCode.Add("Surface Capabilities and Characteristics Age (295-22)");
+                        double AOS = Octets.Dequeue() * 0.01;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
+                } //NO TEST
                 else if (Info.DataItemID[1] == "400")
                 {
                     //I021/400 Receiver ID 

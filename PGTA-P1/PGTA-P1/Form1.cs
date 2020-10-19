@@ -30,6 +30,7 @@ namespace PGTA_P1
         [DllImportAttribute("user32.dll")]
         public static extern bool ReleaseCapture();
 
+        //Constructor
         public Form1()
         {
             InitializeComponent();
@@ -56,7 +57,7 @@ namespace PGTA_P1
                 Filtrada = Inicial;
             else if (CatView == "All") //Radar no es all
             {
-                F = Inicial.Select("X = '" + SourView + "'");
+                F = Inicial.Select("Source = '" + SourView + "'");
                 int i = 0;
                 while (i < F.Count())
                 {
@@ -185,7 +186,7 @@ namespace PGTA_P1
 
                 DataTable DT = new DataTable();
                 DT.Columns.Add("Category");
-                DT.Columns.Add("X");
+                DT.Columns.Add("Source");
                 DT.Columns.Add("Target ID/Address/T.Number");
                 DT.Columns.Add("Vehicle Fleet");
                 DT.Columns.Add("DataBlock Id");
@@ -226,7 +227,7 @@ namespace PGTA_P1
                             this.DataTable1000.Add(DT);
                             DT = new DataTable();
                             DT.Columns.Add("Category");
-                            DT.Columns.Add("X");
+                            DT.Columns.Add("Source");
                             DT.Columns.Add("Target ID/Address/T.Number");
                             DT.Columns.Add("Vehicle Fleet");
                             DT.Columns.Add("DataBlock Id");

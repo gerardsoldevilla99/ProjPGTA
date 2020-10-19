@@ -2819,6 +2819,12 @@ namespace PGTA_P1
                 else if (Info.DataItemID[1] == "400")
                 {
                     //I021/400 Receiver ID 
+                    byte[] RID=new byte[2];
+                    RID[1]=0;
+                    RID[0]=Octets.Dequeue();
+                    int RID_Dec=BitConverter.ToInt16(RID,0);
+                    DeCode.Add("RID: "+RID_Dec.ToString());
+
                 }
                 else
                 {

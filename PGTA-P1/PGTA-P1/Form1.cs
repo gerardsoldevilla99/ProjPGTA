@@ -77,7 +77,7 @@ namespace PGTA_P1
             }
             else //Cap es all
             {
-                F = Inicial.Select("Category = '" + CatView + "' AND X = '" + SourView + "'");
+                F = Inicial.Select("Category = '" + CatView + "' AND Source = '" + SourView + "'");
                 int i = 0;
                 while (i < F.Count())
                 {
@@ -305,7 +305,7 @@ namespace PGTA_P1
                         PSRBTN.Visible = false;
                         AllSBTN.Visible = false;
                         MultiBTN.BorderStyle = BorderStyle.FixedSingle;
-                        SourView = "TYP: Mode S multilateration";
+                        SourView = "Multi.";
                         CatView = "10";
                     }
                     else
@@ -313,7 +313,7 @@ namespace PGTA_P1
                         MultiBTN.Visible = false;
                         PSRBTN.Visible = true;
                         AllSBTN.Visible = false;
-                        SourView = "TYP: PSR";
+                        SourView = "SMR";
                         CatView = "10";
                         PSRBTN.BorderStyle = BorderStyle.FixedSingle;
                     }
@@ -483,7 +483,7 @@ namespace PGTA_P1
         //BTN Multi (S)
         private void MultiBTN_Click(object sender, EventArgs e)
         {
-            this.SourView = "TYP: Mode S multilateration";
+            this.SourView = "Multi.";
             MultiBTN.BorderStyle = BorderStyle.FixedSingle;
             PSRBTN.BorderStyle = BorderStyle.None;
             AdsBTN.BorderStyle = BorderStyle.None;
@@ -504,7 +504,7 @@ namespace PGTA_P1
         //BTN Psr (S)
         private void PSRBTN_Click(object sender, EventArgs e)
         {
-            this.SourView = "TYP: PSR";
+            this.SourView = "TYP: SMR";
             MultiBTN.BorderStyle = BorderStyle.None;
             PSRBTN.BorderStyle = BorderStyle.FixedSingle;
             AdsBTN.BorderStyle = BorderStyle.None;

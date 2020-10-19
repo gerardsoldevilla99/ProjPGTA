@@ -567,9 +567,9 @@ namespace PGTA_P1
             this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label8.Location = new System.Drawing.Point(15, 6);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(29, 13);
+            this.label8.Size = new System.Drawing.Size(31, 13);
             this.label8.TabIndex = 5;
-            this.label8.Text = "PSR";
+            this.label8.Text = "SMR";
             this.label8.Click += new System.EventHandler(this.PSRBTN_Click);
             this.label8.MouseLeave += new System.EventHandler(this.PSRBTN_MouseLeave);
             this.label8.MouseHover += new System.EventHandler(this.PSRBTN_MouseHover);

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics.PerformanceData;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Globalization;
@@ -112,17 +113,49 @@ namespace PGTA_P1
                             }
                             else if (MaxOct == 0)//variable
                             {
-                                bool DataFieldB = true;
-                                while (DataFieldB == true)
+                                if (Valorant.DataItemID[1] == "295")
                                 {
-                                    byte Evaluat = Bytes.Dequeue();
-                                    New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
+                                    string TOTAL = "";
+                                    bool DataFieldB = true;
+                                    while (DataFieldB == true)
+                                    {
+                                        byte Evaluat = Bytes.Dequeue();
+                                        New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
 
-                                    //Mirem si segueix o no, 0 no segueix 1 si.
-                                    string EvaString = Convert.ToString(Evaluat, 2).PadLeft(8, '0');
-                                    char[] EvaChar = EvaString.ToCharArray();
-                                    if (EvaChar[7] == '0')
-                                        DataFieldB = false;
+                                        //Mirem si segueix o no, 0 no segueix 1 si.
+                                        string EvaString = Convert.ToString(Evaluat, 2).PadLeft(8, '0');
+                                        TOTAL = "" + TOTAL + "" + EvaString + "";
+                                        char[] EvaChar = EvaString.ToCharArray();
+                                        if (EvaChar[7] == '0')
+                                            DataFieldB = false;
+                                    }
+                                    //Ara ja tenim el FSPEL del item 295, mirem quants datafields te.
+                                    char[] TotChar = TOTAL.ToCharArray();
+                                    int k = 0;
+                                    int instant = 1;
+                                    while (k < TotChar.Count())
+                                    {
+                                        if (TotChar[k] == '1')
+                                            if(k != (8*instant)-1)
+                                                if(Bytes.Count!= 0)
+                                                    New.Octets.Enqueue(Bytes.Dequeue());
+                                        k++;
+                                    }
+                                }
+                                else
+                                {
+                                    bool DataFieldB = true;
+                                    while (DataFieldB == true)
+                                    {
+                                        byte Evaluat = Bytes.Dequeue();
+                                        New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
+
+                                        //Mirem si segueix o no, 0 no segueix 1 si.
+                                        string EvaString = Convert.ToString(Evaluat, 2).PadLeft(8, '0');
+                                        char[] EvaChar = EvaString.ToCharArray();
+                                        if (EvaChar[7] == '0')
+                                            DataFieldB = false;
+                                    }
                                 }
                             }
                             else//limitat
@@ -166,7 +199,11 @@ namespace PGTA_P1
                     if (Evaluat.Info.DataItemID[1] == "020")
                     {
                         e = true;
-                        this.From = Evaluat.DeCode[0];
+                        string H = Evaluat.DeCode[0];
+                        if (H == "TYP: Mode S multilateration")
+                            this.From = "Multi.";
+                        else if (H == "TYP: PSR")
+                            this.From = "SMR";
                     }
                     i++;
                 }
@@ -703,9 +740,16 @@ namespace PGTA_P1
 
                     int Time_Dec = BitConverter.ToInt32(Time, 0);
                     double Time_S = Convert.ToDouble(Time_Dec) / 128;
-                    DeCode.Add(Convert.ToString(Time_S));
 
-                    this.Info.units.Add("s (UTC, form midnight)");
+                    TimeSpan t = TimeSpan.FromSeconds(Time_S);
+                    string answer = string.Format("{0:D2}h:{1:D2}m:{2:D2}s:{3:D3}ms",
+                                    t.Hours,
+                                    t.Minutes,
+                                    t.Seconds,
+                                    t.Milliseconds);
+                    DeCode.Add(answer);
+
+                    this.Info.units.Add("UTC, form midnight");
                 }
                 else if (Info.DataItemID[1] == "161")
                 {
@@ -1565,8 +1609,16 @@ namespace PGTA_P1
                     TMRP[0] = Octets.Dequeue();
                     int TMRP_Dec = BitConverter.ToInt32(TMRP, 0);
                     double TMRP_Dou = Convert.ToDouble(TMRP_Dec) / 128;
-                    DeCode.Add(Convert.ToString(TMRP_Dou));
-                    this.Info.units.Add("s");
+
+                    TimeSpan t = TimeSpan.FromSeconds(TMRP_Dou);
+                    string answer = string.Format("{0:D2}h:{1:D2}m:{2:D2}s:{3:D3}ms",
+                                    t.Hours,
+                                    t.Minutes,
+                                    t.Seconds,
+                                    t.Milliseconds);
+                    DeCode.Add(answer);
+
+                    this.Info.units.Add("UTC");
                 }
                 else if (Info.DataItemID[1] == "074")
                 {
@@ -1595,9 +1647,16 @@ namespace PGTA_P1
                     TOMRPh[1] = Octets.Dequeue();
                     TOMRPh[0] = Octets.Dequeue();
                     int TOMRPh_Dec = (BitConverter.ToInt32(TOMRPh, 0)) / (2 ^ 30);
-                    DeCode.Add(Convert.ToString(TOMRPh_Dec));
-                    this.Info.units.Add("s");
 
+                    TimeSpan t = TimeSpan.FromSeconds(TOMRPh_Dec);
+                    string answer = string.Format("{0:D2}h:{1:D2}m:{2:D2}s:{3:D3}ms",
+                                    t.Hours,
+                                    t.Minutes,
+                                    t.Seconds,
+                                    t.Milliseconds);
+                    DeCode.Add(answer);
+
+                    this.Info.units.Add("UTC");
                 }
                 else if (Info.DataItemID[1] == "075")
                 {
@@ -2596,236 +2655,261 @@ namespace PGTA_P1
                         }
                     }
                 }
-                //else if (Info.DataItemID[1] == "295")
-                //{
-                //    //I021/295 Data Ages 
-                //    string DataOctet1 = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
-                //    char[] bitsOctet1 = DataOctet1.ToCharArray();
-                //    string DataOctet2 = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
-                //    char[] bitsOctet2 = DataOctet2.ToCharArray();
-                //    string DataOctet3 = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
-                //    char[] bitsOctet3 = DataOctet3.ToCharArray();
-                //    string DataOctet4 = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
-                //    char[] bitsOctet4 = DataOctet4.ToCharArray();
-                //    DeCode.Add("-");
+                else if (Info.DataItemID[1] == "295")
+                {
+                    //I021/295 Data Ages 
+                    string DataOctet1 = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                    char[] bitsOctet1 = DataOctet1.ToCharArray();
+                    string DataOctet2;
+                    char[] bitsOctet2 = new char[8];
+                    string DataOctet3;
+                    char[] bitsOctet3 = new char[8];
+                    string DataOctet4;
+                    char[] bitsOctet4 = new char[8];
+                    if (bitsOctet1[7] == '1')
+                    {
+                        DataOctet2 = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                        bitsOctet2 = DataOctet2.ToCharArray();
+                        if (bitsOctet2[7] == '1')
+                        {
+                            DataOctet3 = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                            bitsOctet3 = DataOctet3.ToCharArray();
+                            if (bitsOctet3[7] == '1')
+                            {
+                                DataOctet4 = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
+                                bitsOctet4 = DataOctet4.ToCharArray();
+                            }
+                        }
+                    }
+                        
+                    DeCode.Add("-");
 
-                //    //AOS
-                //    if (bitsOctet1[0] == '1')
-                //    {
-                //        DeCode.Add("Aircraft Operational Status age (295-1)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                    //AOS
+                    if (bitsOctet1[0] == '1')
+                    {
+                        DeCode.Add("Aircraft Operational Status age (295-1)");
+                        double AOS = Octets.Dequeue() * 0.1;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
 
-                //    //TRD
-                //    if (bitsOctet1[1] == '1')
-                //    {
-                //        DeCode.Add("Target Report Descriptor Age (295-2)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                    //TRD
+                    if (bitsOctet1[1] == '1')
+                    {
+                        DeCode.Add("Target Report Descriptor Age (295-2)");
+                        double AOS = Octets.Dequeue() * 0.1;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
 
-                //    //M3A
-                //    if (bitsOctet1[2] == '1')
-                //    {
-                //        DeCode.Add("Mode 3/A Age Age (295-3)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                    //M3A
+                    if (bitsOctet1[2] == '1')
+                    {
+                        DeCode.Add("Mode 3/A Age Age (295-3)");
+                        double AOS = Octets.Dequeue() * 0.1;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
 
-                //    //QI
-                //    if (bitsOctet1[3] == '1')
-                //    {
-                //        DeCode.Add("Quality Indicators Age (295-4)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                    //QI
+                    if (bitsOctet1[3] == '1')
+                    {
+                        DeCode.Add("Quality Indicators Age (295-4)");
+                        double AOS = Octets.Dequeue() * 0.1;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
 
-                //    //TI
-                //    if (bitsOctet1[4] == '1')
-                //    {
-                //        DeCode.Add("Trajectory Intent Age (295-5)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                    //TI
+                    if (bitsOctet1[4] == '1')
+                    {
+                        DeCode.Add("Trajectory Intent Age (295-5)");
+                        double AOS = Octets.Dequeue() * 0.1;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
 
-                //    //MAM
-                //    if (bitsOctet1[5] == '1')
-                //    {
-                //        DeCode.Add("Message Amplitude Age (295-6)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                    //MAM
+                    if (bitsOctet1[5] == '1')
+                    {
+                        DeCode.Add("Message Amplitude Age (295-6)");
+                        double AOS = Octets.Dequeue() * 0.1;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
 
-                //    //GH
-                //    if (bitsOctet1[6] == '1')
-                //    {
-                //        DeCode.Add("Geometric Heighte Age (295-7)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                    //GH
+                    if (bitsOctet1[6] == '1')
+                    {
+                        DeCode.Add("Geometric Heighte Age (295-7)");
+                        double AOS = Octets.Dequeue() * 0.1;
+                        DeCode.Add(Convert.ToString(AOS));
+                        this.Info.units.Add("s");
+                    }
 
-                //    //FL
-                //    if (bitsOctet2[0] == '1')
-                //    {
-                //        DeCode.Add("Flight Level Age (295-8)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                    if (bitsOctet1[7] == '1')
+                    {
+                        //FL
+                        if (bitsOctet2[0] == '1')
+                        {
+                            DeCode.Add("Flight Level Age (295-8)");
+                            double AOS = Octets.Dequeue() * 0.1;
+                            DeCode.Add(Convert.ToString(AOS));
+                            this.Info.units.Add("s");
+                        }
 
-                //    //ISA
-                //    if (bitsOctet2[1] == '1')
-                //    {
-                //        DeCode.Add("Intermediate State Selected Altitude Age (295-9)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                        //ISA
+                        if (bitsOctet2[1] == '1')
+                        {
+                            DeCode.Add("Intermediate State Selected Altitude Age (295-9)");
+                            double AOS = Octets.Dequeue() * 0.1;
+                            DeCode.Add(Convert.ToString(AOS));
+                            this.Info.units.Add("s");
+                        }
 
-                //    //FSA
-                //    if (bitsOctet2[2] == '1')
-                //    {
-                //        DeCode.Add("Final State Selected Altitude Age (295-10)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                        //FSA
+                        if (bitsOctet2[2] == '1')
+                        {
+                            DeCode.Add("Final State Selected Altitude Age (295-10)");
+                            double AOS = Octets.Dequeue() * 0.1;
+                            DeCode.Add(Convert.ToString(AOS));
+                            this.Info.units.Add("s");
+                        }
 
-                //    //AS
-                //    if (bitsOctet2[3] == '1')
-                //    {
-                //        DeCode.Add("Air Speed Age (295-11)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                        //AS
+                        if (bitsOctet2[3] == '1')
+                        {
+                            DeCode.Add("Air Speed Age (295-11)");
+                            double AOS = Octets.Dequeue() * 0.1;
+                            DeCode.Add(Convert.ToString(AOS));
+                            this.Info.units.Add("s");
+                        }
 
-                //    //TAS
-                //    if (bitsOctet2[4] == '1')
-                //    {
-                //        DeCode.Add("True Air Speed Age (295-12)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                        //TAS
+                        if (bitsOctet2[4] == '1')
+                        {
+                            DeCode.Add("True Air Speed Age (295-12)");
+                            double AOS = Octets.Dequeue() * 0.1;
+                            DeCode.Add(Convert.ToString(AOS));
+                            this.Info.units.Add("s");
+                        }
 
-                //    //MH
-                //    if (bitsOctet2[5] == '1')
-                //    {
-                //        DeCode.Add("Magnetic Heading Age (295-13)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                        //MH
+                        if (bitsOctet2[5] == '1')
+                        {
+                            DeCode.Add("Magnetic Heading Age (295-13)");
+                            double AOS = Octets.Dequeue() * 0.1;
+                            DeCode.Add(Convert.ToString(AOS));
+                            this.Info.units.Add("s");
+                        }
 
-                //    //BVR
-                //    if (bitsOctet2[6] == '1')
-                //    {
-                //        DeCode.Add("Barometric Vertical Rate Age (295-14)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                        //BVR
+                        if (bitsOctet2[6] == '1')
+                        {
+                            DeCode.Add("Barometric Vertical Rate Age (295-14)");
+                            double AOS = Octets.Dequeue() * 0.1;
+                            DeCode.Add(Convert.ToString(AOS));
+                            this.Info.units.Add("s");
+                        }
 
-                //    //GVR
-                //    if (bitsOctet3[0] == '1')
-                //    {
-                //        DeCode.Add("Geometric Vertical Rate Age (295-15)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                        if (bitsOctet2[7] == '1')
+                        {
 
-                //    //GV
-                //    if (bitsOctet3[1] == '1')
-                //    {
-                //        DeCode.Add("Ground Vector Age (295-16)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                            //GVR
+                            if (bitsOctet3[0] == '1')
+                            {
+                                DeCode.Add("Geometric Vertical Rate Age (295-15)");
+                                double AOS = Octets.Dequeue() * 0.1;
+                                DeCode.Add(Convert.ToString(AOS));
+                                this.Info.units.Add("s");
+                            }
 
-                //    //TAR
-                //    if (bitsOctet3[2] == '1')
-                //    {
-                //        DeCode.Add("Track Angle Rate Age (295-17)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                            //GV
+                            if (bitsOctet3[1] == '1')
+                            {
+                                DeCode.Add("Ground Vector Age (295-16)");
+                                double AOS = Octets.Dequeue() * 0.1;
+                                DeCode.Add(Convert.ToString(AOS));
+                                this.Info.units.Add("s");
+                            }
 
-                //    //TI
-                //    if (bitsOctet3[3] == '1')
-                //    {
-                //        DeCode.Add("Target Identification Age (295-18)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                            //TAR
+                            if (bitsOctet3[2] == '1')
+                            {
+                                DeCode.Add("Track Angle Rate Age (295-17)");
+                                double AOS = Octets.Dequeue() * 0.1;
+                                DeCode.Add(Convert.ToString(AOS));
+                                this.Info.units.Add("s");
+                            }
 
-                //    //TI
-                //    if (bitsOctet3[4] == '1')
-                //    {
-                //        DeCode.Add("Target Status Age (295-19)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                            //TI
+                            if (bitsOctet3[3] == '1')
+                            {
+                                DeCode.Add("Target Identification Age (295-18)");
+                                double AOS = Octets.Dequeue() * 0.1;
+                                DeCode.Add(Convert.ToString(AOS));
+                                this.Info.units.Add("s");
+                            }
 
-                //    //MET
-                //    if (bitsOctet3[5] == '1')
-                //    {
-                //        DeCode.Add("Met Information Age (295-20)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                            //TI
+                            if (bitsOctet3[4] == '1')
+                            {
+                                DeCode.Add("Target Status Age (295-19)");
+                                double AOS = Octets.Dequeue() * 0.1;
+                                DeCode.Add(Convert.ToString(AOS));
+                                this.Info.units.Add("s");
+                            }
 
-                //    //ROA
-                //    if (bitsOctet3[6] == '1')
-                //    {
-                //        DeCode.Add("Roll Angle Age (295-21)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                            //MET
+                            if (bitsOctet3[5] == '1')
+                            {
+                                DeCode.Add("Met Information Age (295-20)");
+                                double AOS = Octets.Dequeue() * 0.1;
+                                DeCode.Add(Convert.ToString(AOS));
+                                this.Info.units.Add("s");
+                            }
 
-                //    //ARA
-                //    if (bitsOctet4[0] == '1')
-                //    {
-                //        DeCode.Add("ACAS Resolution Advisory Age (295-22)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
+                            //ROA
+                            if (bitsOctet3[6] == '1')
+                            {
+                                DeCode.Add("Roll Angle Age (295-21)");
+                                double AOS = Octets.Dequeue() * 0.1;
+                                DeCode.Add(Convert.ToString(AOS));
+                                this.Info.units.Add("s");
+                            }
 
-                //    //SCC
-                //    if (bitsOctet4[0] == '1')
-                //    {
-                //        DeCode.Add("Surface Capabilities and Characteristics Age (295-22)");
-                //        double AOS = Octets.Dequeue() * 0.01;
-                //        DeCode.Add(Convert.ToString(AOS));
-                //        this.Info.units.Add("s");
-                //    }
-                //} //NO TEST
-                //else if (Info.DataItemID[1] == "400")
-                //{
-                //    //I021/400 Receiver ID 
-                //    byte[] RID = new byte[2];
-                //    RID[1] = 0;
-                //    RID[0] = Octets.Dequeue();
-                //    int RID_Dec = BitConverter.ToInt16(RID, 0);
-                //    DeCode.Add("RID: " + RID_Dec.ToString());
+                            if (bitsOctet3[7] == '1')
+                            {
+                                //ARA
+                                if (bitsOctet4[0] == '1')
+                                {
+                                    DeCode.Add("ACAS Resolution Advisory Age (295-22)");
+                                    double AOS = Octets.Dequeue() * 0.1;
+                                    DeCode.Add(Convert.ToString(AOS));
+                                    this.Info.units.Add("s");
+                                }
 
-                //}
+                                //SCC
+                                if (bitsOctet4[1] == '1')
+                                {
+                                    DeCode.Add("Surface Capabilities and Characteristics Age (295-23)");
+                                    double AOS = Octets.Dequeue() * 0.1;
+                                    DeCode.Add(Convert.ToString(AOS));
+                                    this.Info.units.Add("s");
+                                }
+                            }
+                        }
+                    }
+                } //NO TEST
+                else if (Info.DataItemID[1] == "400")
+                {
+                    //I021/400 Receiver ID 
+                    byte[] RID = new byte[2];
+                    RID[1] = 0;
+                    RID[0] = Octets.Dequeue();
+                    int RID_Dec = BitConverter.ToInt16(RID, 0);
+                    DeCode.Add(RID_Dec.ToString());
+                }
                 else
                 {
                     DeCode.Add("-");

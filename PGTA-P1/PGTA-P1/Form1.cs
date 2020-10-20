@@ -20,7 +20,7 @@ namespace PGTA_P1
 
         string CatView = "All";
         string SourView = "All";
-        
+        string IdView = "All";
 
         //Moure ventana
         public const int WM_NCLBUTTONDOWN = 0xA1;
@@ -40,9 +40,7 @@ namespace PGTA_P1
             PGB1.Minimum = 1;
         }
 
-
-        //Actualització de DGV DataBlocks
-        private void DataBlocksDGV_Act()
+        private DataView FiltrarCatSour()
         {
             DataTable Inicial = DataTable1000[numDTable];
             DataRow[] F = new DataRow[999];
@@ -85,9 +83,66 @@ namespace PGTA_P1
                     i++;
                 }
             }
+            DataView ret = Filtrada.DefaultView;
 
-            DataBlocksAll.DataSource = Filtrada;
+            previousBTT.Visible = true;
+            nextBTN.Visible = true;
+            Max.Text = Convert.ToString(this.DataTable1000.Count());
+
+            return ret;
+        }
+
+        private DataView FiltrarID()
+        {
+            DataTable Final = new DataTable();
+            Final.Columns.Add("Category");
+            Final.Columns.Add("Source");
+            Final.Columns.Add("Target ID/Address/T.Number");
+            Final.Columns.Add("Vehicle Fleet");
+            Final.Columns.Add("DataBlock Id");
+            numDTable = 0;
+            while(numDTable<DataTable1000.Count())
+            {
+                DataTable Input = FiltrarCatSour().ToTable();
+                DataRow[] F = new DataRow[999];
+                F = Input.Select("[Target ID/Address/T.Number] LIKE '" + IdView + "%'");
+                int j = 0;
+                while (j < F.Count())
+                {
+                    Final.ImportRow(F[j]);
+                    j++;
+                }
+                numDTable++;
+            }
+            numDTable = 0;
+            
+            DataView ret = Final.DefaultView;
+            ret.Sort = "[Target ID/Address/T.Number]";
+
+            Max.Text = "1";
+            previousBTT.Visible = false;
+            nextBTN.Visible = false;
+
+            return ret;
+        }
+
+        //Actualització de DGV DataBlocks
+        private void DataBlocksDGV_Act()
+        {
+            DataInf.Text = "Loading...";
+            DataInf.ForeColor = Color.DarkGray;
+            DataInf.Refresh();
+            DataView Filtrada = FiltrarCatSour();
+            if (IdView != "All")
+                Filtrada = FiltrarID();
+
+            this.Cursor = Cursors.WaitCursor;   
+            DataBlocksAll.DataSource = Filtrada.ToTable();
             DataBlocksAll.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            this.Cursor = Cursors.Default;
+            DataInf.Text = "Data loaded";
+            DataInf.ForeColor = Color.Green;
+            DataInf.Refresh();
         }
 
         //Actualització de DGV DataBlockView
@@ -217,9 +272,9 @@ namespace PGTA_P1
                     {
                         DataBlockList.Add(new DataBlock(BytesSave, Cat, DataBlockList.Count())); //Afegim a la llista general
                         
-                        if (DataBlockList.Last().From == "TYP: Mode S multilateration")
+                        if (DataBlockList.Last().From == "Multi.")
                             Multi = true;
-                        else if (DataBlockList.Last().From == "TYP: PSR")
+                        else if (DataBlockList.Last().From == "SMR")
                             Psr = true;
                             numDT++;
                         if (numDT == 999)
@@ -578,6 +633,38 @@ namespace PGTA_P1
                 i++;
             }
             this.Cursor = Cursors.Default;
+        }
+
+        //BTN Buscar + TextBox Buscar
+        private void BuscarBTN_Click(object sender, EventArgs e)
+        {
+            DataInf.Text = "Loading...";
+            DataInf.ForeColor = Color.DarkGray;
+            DataInf.Refresh();
+            this.Cursor = Cursors.WaitCursor;
+            this.IdView = Buscar.Text;
+            if (IdView == "")
+                this.IdView = "All";
+            DataBlocksDGV_Act();
+            this.Cursor = Cursors.Default;
+            DataInf.Text = "Data loaded";
+            DataInf.ForeColor = Color.Green;
+        }
+        private void BuscarBTN_MouseHover(object sender, EventArgs e)
+        {
+            BuscarBTN.BackColor = Color.FromArgb(0, 66, 108);
+        }
+        private void BuscarBTN_MouseLeave(object sender, EventArgs e)
+        {
+            BuscarBTN.BackColor = Color.FromArgb(209, 222, 230);
+        }
+        private void Buscar_TextChanged(object sender, EventArgs e)
+        {
+            if (Buscar.Text == "")
+            {
+                this.IdView = "All";
+                DataBlocksDGV_Act();
+            }
         }
 
         

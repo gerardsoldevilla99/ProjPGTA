@@ -640,32 +640,40 @@ namespace PGTA_P1
                 else if (Info.DataItemID[1] == "060")
                 {
                     //Item 060 Mode-3/A Code in Octal Representation 
-                    string DataOctet = "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
+                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
                     char[] bitsOctet = DataOctet.ToCharArray();
 
                     if (bitsOctet[0] == '0')
                         DeCode.Add("V: Code validated");
                     else
+                    {
                         DeCode.Add("V: Code not validated");
+                        bitsOctet[0] = '0';
+                    }
+                        
 
                     if (bitsOctet[1] == '0')
                         DeCode.Add("G: Default");
                     else
+                    {
                         DeCode.Add("G: Garbled code");
+                        bitsOctet[1] = '0';
+                    }
+                        
 
                     if (bitsOctet[2] == '0')
                         DeCode.Add("L: Mode-3/A code derived from the reply of the transponder");
                     else
-                        DeCode.Add("L: Mode-3/A code not extracted during the last scan");
-
-                    int i = 4;
-                    char[] Reply = new char[12];
-                    while (i < bitsOctet.Length)
                     {
-                        Reply[i - 4] = bitsOctet[i];
-                        i++;
+                        DeCode.Add("L: Mode-3/A code not extracted during the last scan");
+                        bitsOctet[2] = '0';
                     }
-                    DeCode.Add(Reply.ToString());
+
+                    byte[] New = new byte[2];
+                    New[1] = Convert.ToByte(new string(bitsOctet), 2);
+                    New[0] = Octets.Dequeue();
+                    string OO = Convert.ToString(BitConverter.ToInt16(New, 0),8);
+                    DeCode.Add(OO);
                 }
                 else if (Info.DataItemID[1] == "090")
                 {
@@ -1310,7 +1318,7 @@ namespace PGTA_P1
                 }
                 else
                 {
-                    DeCode.Add("FATAL ERROR");
+                    DeCode.Add("-");
                 }
             }
             else
@@ -1383,8 +1391,7 @@ namespace PGTA_P1
                 else if (Info.DataItemID[1] == "015")
                 {
                     //010, Service Identification
-                    string DataOctet = Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0');
-                    DeCode.Add(DataOctet);
+                    DeCode.Add(Octets.Dequeue().ToString());
                 }
                 else if (Info.DataItemID[1] == "016")
                 {
@@ -1561,17 +1568,12 @@ namespace PGTA_P1
                 else if (Info.DataItemID[1] == "070")
                 {
                     // 070, Mode 3/A Code in Octal Representation 
-                    string DataOctet = "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "" + Convert.ToString(Octets.Dequeue(), 2).PadLeft(8, '0') + "";
-                    char[] bitsOctet = DataOctet.ToCharArray();
-
-                    int i = 4;
-                    char[] Reply = new char[12];
-                    while (i < bitsOctet.Length)
-                    {
-                        Reply[i - 4] = bitsOctet[i];
-                        i++;
-                    }
-                    DeCode.Add(new string(bitsOctet));
+                    byte []b = new byte[2];
+                    b[1] = Octets.Dequeue();
+                    b[0] = Octets.Dequeue();
+                    int Oc = BitConverter.ToInt16(b, 0);
+                    string OO = Convert.ToString(Oc, 8);
+                    DeCode.Add(OO);
                 }
                 else if (Info.DataItemID[1] == "071")
                 {
@@ -1583,8 +1585,15 @@ namespace PGTA_P1
                     TAP[0] = Octets.Dequeue();
                     int TAP_Dec = BitConverter.ToInt32(TAP, 0);
                     double TAP_Dou = Convert.ToDouble(TAP_Dec) / 128;
-                    DeCode.Add(Convert.ToString(TAP_Dou));
-                    this.Info.units.Add("s");
+                    TimeSpan t = TimeSpan.FromSeconds(TAP_Dou);
+                    string answer = string.Format("{0:D2}h:{1:D2}m:{2:D2}s:{3:D3}ms",
+                                    t.Hours,
+                                    t.Minutes,
+                                    t.Seconds,
+                                    t.Milliseconds);
+                    DeCode.Add(answer);
+
+                    this.Info.units.Add("UTC");
                 }
                 else if (Info.DataItemID[1] == "072")
                 {
@@ -1669,8 +1678,15 @@ namespace PGTA_P1
                     TMRV[0] = Octets.Dequeue();
 
                     double TMRV_Dec = (BitConverter.ToInt32(TMRV, 0)) / 128;
-                    DeCode.Add(Convert.ToString(TMRV_Dec));
-                    this.Info.units.Add("s");
+                    TimeSpan t = TimeSpan.FromSeconds(TMRV_Dec);
+                    string answer = string.Format("{0:D2}h:{1:D2}m:{2:D2}s:{3:D3}ms",
+                                    t.Hours,
+                                    t.Minutes,
+                                    t.Seconds,
+                                    t.Milliseconds);
+                    DeCode.Add(answer);
+
+                    this.Info.units.Add("UTC");
                 }
                 else if (Info.DataItemID[1] == "076")
                 {
@@ -1713,8 +1729,15 @@ namespace PGTA_P1
                     TART[0] = Octets.Dequeue();
 
                     double TART_Dec = (BitConverter.ToInt32(TART, 0)) / 128;
-                    DeCode.Add(Convert.ToString(TART_Dec));
-                    this.Info.units.Add("s");
+                    TimeSpan t = TimeSpan.FromSeconds(TART_Dec);
+                    string answer = string.Format("{0:D2}h:{1:D2}m:{2:D2}s:{3:D3}ms",
+                                    t.Hours,
+                                    t.Minutes,
+                                    t.Seconds,
+                                    t.Milliseconds);
+                    DeCode.Add(answer);
+
+                    this.Info.units.Add("UTC");
                 }
                 else if (Info.DataItemID[1] == "080")
                 {
@@ -1977,7 +2000,9 @@ namespace PGTA_P1
                     int A = BitConverter.ToInt32(Lat, 0); double P = 180.0 / 8388608;
                     double Lat_Dec = Convert.ToDouble(A) * P;
                     DeCode.Add(Lat_Dec.ToString());
-                    this.Info.units.Add("º");
+                    this.Info.units.Add("Lat º");
+                    DeCode.Add(GeoAngle.FromDouble(Lat_Dec).ToString());
+                    this.Info.units.Add("Lat");
 
                     byte[] Lon = new byte[4];
                     Lon[3] = 0;
@@ -1986,7 +2011,9 @@ namespace PGTA_P1
                     Lon[0] = Octets.Dequeue();
                     double Lon_Dec = Convert.ToDouble(BitConverter.ToInt32(Lon, 0)) * 180 / 8388608;
                     DeCode.Add(Lon_Dec.ToString());
-                    this.Info.units.Add("º");
+                    this.Info.units.Add("Lon º");
+                    DeCode.Add(GeoAngle.FromDouble(Lon_Dec).ToString());
+                    this.Info.units.Add("Lon");
                 }
                 else if (Info.DataItemID[1] == "131")
                 {
@@ -1998,7 +2025,9 @@ namespace PGTA_P1
                     Lat[0] = Octets.Dequeue();
                     double Lat_Dec = Convert.ToDouble(BitConverter.ToInt32(Lat, 0)) * 180 / (1073741824);
                     DeCode.Add(Lat_Dec.ToString());
-                    this.Info.units.Add("degrees");
+                    this.Info.units.Add("Lat º");
+                    DeCode.Add(GeoAngle.FromDouble(Lat_Dec).ToString());
+                    this.Info.units.Add("Lat");
 
                     byte[] Lon = new byte[4];
                     Lon[3] = Octets.Dequeue();
@@ -2007,7 +2036,9 @@ namespace PGTA_P1
                     Lon[0] = Octets.Dequeue();
                     double Lon_Dec = Convert.ToDouble(BitConverter.ToInt32(Lon, 0)) * 180 / (1073741824);
                     DeCode.Add(Lon_Dec.ToString());
-                    this.Info.units.Add("degrees");
+                    this.Info.units.Add("Lon º");
+                    DeCode.Add(GeoAngle.FromDouble(Lon_Dec).ToString());
+                    this.Info.units.Add("Lon");
                 }
                 else if (Info.DataItemID[1] == "132")
                 {
@@ -2042,7 +2073,7 @@ namespace PGTA_P1
                     FL[0] = Octets.Dequeue();
                     double FL_Dec = BitConverter.ToInt16(FL, 0) * 0.25;
                     DeCode.Add(FL_Dec.ToString());
-                    this.Info.units.Add("ft");
+                    this.Info.units.Add("FL");
                 }
                 else if (Info.DataItemID[1] == "146")
                 {
@@ -2432,11 +2463,11 @@ namespace PGTA_P1
                     //VN
                     byte SS = Convert.ToByte("" + bitsOctet[2] + "" + bitsOctet[3] + "" + bitsOctet[4] + "", 2);
                     if (SS == 0)
-                        DeCode.Add("VN: ED102/DO-260 [Ref. 8]");
+                        DeCode.Add("VN: ED102/DO-260 [Ref. 8] (0)");
                     else if (SS == 1)
-                        DeCode.Add("VN: DO-260A [Ref. 9]");
+                        DeCode.Add("VN: DO-260A [Ref. 9] (1)");
                     else
-                        DeCode.Add("VN: ED102A/DO-260B [Ref. 11]");
+                        DeCode.Add("VN: ED102A/DO-260B [Ref. 11] (2)");
 
                     //LTT
                     byte PS = Convert.ToByte("" + bitsOctet[3] + "" + bitsOctet[4] + "" + bitsOctet[5] + "", 2);
@@ -2682,12 +2713,13 @@ namespace PGTA_P1
                         }
                     }
                         
-                    DeCode.Add("-");
+                   // DeCode.Add("-");
 
                     //AOS
                     if (bitsOctet1[0] == '1')
                     {
                         DeCode.Add("Aircraft Operational Status age (295-1)");
+                        this.Info.units.Add("-");
                         double AOS = Octets.Dequeue() * 0.1;
                         DeCode.Add(Convert.ToString(AOS));
                         this.Info.units.Add("s");
@@ -2697,6 +2729,7 @@ namespace PGTA_P1
                     if (bitsOctet1[1] == '1')
                     {
                         DeCode.Add("Target Report Descriptor Age (295-2)");
+                        this.Info.units.Add("-");
                         double AOS = Octets.Dequeue() * 0.1;
                         DeCode.Add(Convert.ToString(AOS));
                         this.Info.units.Add("s");
@@ -2706,6 +2739,7 @@ namespace PGTA_P1
                     if (bitsOctet1[2] == '1')
                     {
                         DeCode.Add("Mode 3/A Age Age (295-3)");
+                        this.Info.units.Add("-");
                         double AOS = Octets.Dequeue() * 0.1;
                         DeCode.Add(Convert.ToString(AOS));
                         this.Info.units.Add("s");
@@ -2715,6 +2749,7 @@ namespace PGTA_P1
                     if (bitsOctet1[3] == '1')
                     {
                         DeCode.Add("Quality Indicators Age (295-4)");
+                        this.Info.units.Add("-");
                         double AOS = Octets.Dequeue() * 0.1;
                         DeCode.Add(Convert.ToString(AOS));
                         this.Info.units.Add("s");
@@ -2724,6 +2759,7 @@ namespace PGTA_P1
                     if (bitsOctet1[4] == '1')
                     {
                         DeCode.Add("Trajectory Intent Age (295-5)");
+                        this.Info.units.Add("-");
                         double AOS = Octets.Dequeue() * 0.1;
                         DeCode.Add(Convert.ToString(AOS));
                         this.Info.units.Add("s");
@@ -2733,6 +2769,7 @@ namespace PGTA_P1
                     if (bitsOctet1[5] == '1')
                     {
                         DeCode.Add("Message Amplitude Age (295-6)");
+                        this.Info.units.Add("-");
                         double AOS = Octets.Dequeue() * 0.1;
                         DeCode.Add(Convert.ToString(AOS));
                         this.Info.units.Add("s");
@@ -2742,6 +2779,7 @@ namespace PGTA_P1
                     if (bitsOctet1[6] == '1')
                     {
                         DeCode.Add("Geometric Heighte Age (295-7)");
+                        this.Info.units.Add("-");
                         double AOS = Octets.Dequeue() * 0.1;
                         DeCode.Add(Convert.ToString(AOS));
                         this.Info.units.Add("s");
@@ -2753,6 +2791,7 @@ namespace PGTA_P1
                         if (bitsOctet2[0] == '1')
                         {
                             DeCode.Add("Flight Level Age (295-8)");
+                            this.Info.units.Add("-");
                             double AOS = Octets.Dequeue() * 0.1;
                             DeCode.Add(Convert.ToString(AOS));
                             this.Info.units.Add("s");
@@ -2762,6 +2801,7 @@ namespace PGTA_P1
                         if (bitsOctet2[1] == '1')
                         {
                             DeCode.Add("Intermediate State Selected Altitude Age (295-9)");
+                            this.Info.units.Add("-");
                             double AOS = Octets.Dequeue() * 0.1;
                             DeCode.Add(Convert.ToString(AOS));
                             this.Info.units.Add("s");
@@ -2771,6 +2811,7 @@ namespace PGTA_P1
                         if (bitsOctet2[2] == '1')
                         {
                             DeCode.Add("Final State Selected Altitude Age (295-10)");
+                            this.Info.units.Add("-");
                             double AOS = Octets.Dequeue() * 0.1;
                             DeCode.Add(Convert.ToString(AOS));
                             this.Info.units.Add("s");
@@ -2780,6 +2821,7 @@ namespace PGTA_P1
                         if (bitsOctet2[3] == '1')
                         {
                             DeCode.Add("Air Speed Age (295-11)");
+                            this.Info.units.Add("-");
                             double AOS = Octets.Dequeue() * 0.1;
                             DeCode.Add(Convert.ToString(AOS));
                             this.Info.units.Add("s");
@@ -2789,6 +2831,7 @@ namespace PGTA_P1
                         if (bitsOctet2[4] == '1')
                         {
                             DeCode.Add("True Air Speed Age (295-12)");
+                            this.Info.units.Add("-");
                             double AOS = Octets.Dequeue() * 0.1;
                             DeCode.Add(Convert.ToString(AOS));
                             this.Info.units.Add("s");
@@ -2798,6 +2841,7 @@ namespace PGTA_P1
                         if (bitsOctet2[5] == '1')
                         {
                             DeCode.Add("Magnetic Heading Age (295-13)");
+                            this.Info.units.Add("-");
                             double AOS = Octets.Dequeue() * 0.1;
                             DeCode.Add(Convert.ToString(AOS));
                             this.Info.units.Add("s");
@@ -2807,6 +2851,7 @@ namespace PGTA_P1
                         if (bitsOctet2[6] == '1')
                         {
                             DeCode.Add("Barometric Vertical Rate Age (295-14)");
+                            this.Info.units.Add("-");
                             double AOS = Octets.Dequeue() * 0.1;
                             DeCode.Add(Convert.ToString(AOS));
                             this.Info.units.Add("s");
@@ -2819,6 +2864,7 @@ namespace PGTA_P1
                             if (bitsOctet3[0] == '1')
                             {
                                 DeCode.Add("Geometric Vertical Rate Age (295-15)");
+                                this.Info.units.Add("-");
                                 double AOS = Octets.Dequeue() * 0.1;
                                 DeCode.Add(Convert.ToString(AOS));
                                 this.Info.units.Add("s");
@@ -2828,6 +2874,7 @@ namespace PGTA_P1
                             if (bitsOctet3[1] == '1')
                             {
                                 DeCode.Add("Ground Vector Age (295-16)");
+                                this.Info.units.Add("-");
                                 double AOS = Octets.Dequeue() * 0.1;
                                 DeCode.Add(Convert.ToString(AOS));
                                 this.Info.units.Add("s");
@@ -2837,6 +2884,7 @@ namespace PGTA_P1
                             if (bitsOctet3[2] == '1')
                             {
                                 DeCode.Add("Track Angle Rate Age (295-17)");
+                                this.Info.units.Add("-");
                                 double AOS = Octets.Dequeue() * 0.1;
                                 DeCode.Add(Convert.ToString(AOS));
                                 this.Info.units.Add("s");
@@ -2846,6 +2894,7 @@ namespace PGTA_P1
                             if (bitsOctet3[3] == '1')
                             {
                                 DeCode.Add("Target Identification Age (295-18)");
+                                this.Info.units.Add("-");
                                 double AOS = Octets.Dequeue() * 0.1;
                                 DeCode.Add(Convert.ToString(AOS));
                                 this.Info.units.Add("s");
@@ -2855,6 +2904,7 @@ namespace PGTA_P1
                             if (bitsOctet3[4] == '1')
                             {
                                 DeCode.Add("Target Status Age (295-19)");
+                                this.Info.units.Add("-");
                                 double AOS = Octets.Dequeue() * 0.1;
                                 DeCode.Add(Convert.ToString(AOS));
                                 this.Info.units.Add("s");
@@ -2864,6 +2914,7 @@ namespace PGTA_P1
                             if (bitsOctet3[5] == '1')
                             {
                                 DeCode.Add("Met Information Age (295-20)");
+                                this.Info.units.Add("-");
                                 double AOS = Octets.Dequeue() * 0.1;
                                 DeCode.Add(Convert.ToString(AOS));
                                 this.Info.units.Add("s");
@@ -2873,6 +2924,7 @@ namespace PGTA_P1
                             if (bitsOctet3[6] == '1')
                             {
                                 DeCode.Add("Roll Angle Age (295-21)");
+                                this.Info.units.Add("-");
                                 double AOS = Octets.Dequeue() * 0.1;
                                 DeCode.Add(Convert.ToString(AOS));
                                 this.Info.units.Add("s");
@@ -2884,6 +2936,7 @@ namespace PGTA_P1
                                 if (bitsOctet4[0] == '1')
                                 {
                                     DeCode.Add("ACAS Resolution Advisory Age (295-22)");
+                                    this.Info.units.Add("-");
                                     double AOS = Octets.Dequeue() * 0.1;
                                     DeCode.Add(Convert.ToString(AOS));
                                     this.Info.units.Add("s");
@@ -2893,6 +2946,7 @@ namespace PGTA_P1
                                 if (bitsOctet4[1] == '1')
                                 {
                                     DeCode.Add("Surface Capabilities and Characteristics Age (295-23)");
+                                    this.Info.units.Add("-");
                                     double AOS = Octets.Dequeue() * 0.1;
                                     DeCode.Add(Convert.ToString(AOS));
                                     this.Info.units.Add("s");
@@ -3050,5 +3104,90 @@ namespace PGTA_P1
         }
 
 
+    }
+
+    //De graus a Graus/Min/Seg
+    public class GeoAngle
+    {
+        public bool IsNegative { get; set; }
+        public int Degrees { get; set; }
+        public int Minutes { get; set; }
+        public int Seconds { get; set; }
+        public int Milliseconds { get; set; }
+
+        public static GeoAngle FromDouble(double angleInDegrees)
+        {
+            //ensure the value will fall within the primary range [-180.0..+180.0]
+            while (angleInDegrees < -180.0)
+                angleInDegrees += 360.0;
+
+            while (angleInDegrees > 180.0)
+                angleInDegrees -= 360.0;
+
+            var result = new GeoAngle();
+
+            //switch the value to positive
+            result.IsNegative = angleInDegrees < 0;
+            angleInDegrees = Math.Abs(angleInDegrees);
+
+            //gets the degree
+            result.Degrees = (int)Math.Floor(angleInDegrees);
+            var delta = angleInDegrees - result.Degrees;
+
+            //gets minutes and seconds
+            var seconds = (int)Math.Floor(3600.0 * delta);
+            result.Seconds = seconds % 60;
+            result.Minutes = (int)Math.Floor(seconds / 60.0);
+            delta = delta * 3600.0 - seconds;
+
+            //gets fractions
+            result.Milliseconds = (int)(1000.0 * delta);
+
+            return result;
+        }
+
+
+
+        public override string ToString()
+        {
+            var degrees = this.IsNegative
+                ? -this.Degrees
+                : this.Degrees;
+
+            return string.Format(
+                "{0}° {1:00}' {2:00}\"",
+                degrees,
+                this.Minutes,
+                this.Seconds);
+        }
+
+
+
+        public string ToString(string format)
+        {
+            switch (format)
+            {
+                case "NS":
+                    return string.Format(
+                        "{0}° {1:00}' {2:00}\".{3:000} {4}",
+                        this.Degrees,
+                        this.Minutes,
+                        this.Seconds,
+                        this.Milliseconds,
+                        this.IsNegative ? 'S' : 'N');
+
+                case "WE":
+                    return string.Format(
+                        "{0}° {1:00}' {2:00}\".{3:000} {4}",
+                        this.Degrees,
+                        this.Minutes,
+                        this.Seconds,
+                        this.Milliseconds,
+                        this.IsNegative ? 'W' : 'E');
+
+                default:
+                    throw new NotImplementedException();
+            }
+        }
     }
 }

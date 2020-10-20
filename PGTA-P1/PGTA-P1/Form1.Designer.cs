@@ -45,6 +45,10 @@ namespace PGTA_P1
             this.label3 = new System.Windows.Forms.Label();
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
             this.TextVisorPanel = new System.Windows.Forms.Panel();
+            this.BuscarBTN = new System.Windows.Forms.Panel();
+            this.label2 = new System.Windows.Forms.Label();
+            this.pictureBox9 = new System.Windows.Forms.PictureBox();
+            this.Buscar = new System.Windows.Forms.TextBox();
             this.Max = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
             this.Current = new System.Windows.Forms.Label();
@@ -84,6 +88,8 @@ namespace PGTA_P1
             this.TextVisorBTN.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
             this.TextVisorPanel.SuspendLayout();
+            this.BuscarBTN.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox9)).BeginInit();
             this.nextBTN.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox7)).BeginInit();
             this.previousBTT.SuspendLayout();
@@ -254,6 +260,8 @@ namespace PGTA_P1
             // 
             // TextVisorPanel
             // 
+            this.TextVisorPanel.Controls.Add(this.BuscarBTN);
+            this.TextVisorPanel.Controls.Add(this.Buscar);
             this.TextVisorPanel.Controls.Add(this.Max);
             this.TextVisorPanel.Controls.Add(this.label13);
             this.TextVisorPanel.Controls.Add(this.Current);
@@ -266,6 +274,53 @@ namespace PGTA_P1
             this.TextVisorPanel.Size = new System.Drawing.Size(1259, 536);
             this.TextVisorPanel.TabIndex = 6;
             this.TextVisorPanel.Visible = false;
+            // 
+            // BuscarBTN
+            // 
+            this.BuscarBTN.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(209)))), ((int)(((byte)(222)))), ((int)(((byte)(230)))));
+            this.BuscarBTN.Controls.Add(this.label2);
+            this.BuscarBTN.Controls.Add(this.pictureBox9);
+            this.BuscarBTN.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.BuscarBTN.Location = new System.Drawing.Point(116, 509);
+            this.BuscarBTN.Name = "BuscarBTN";
+            this.BuscarBTN.Size = new System.Drawing.Size(80, 25);
+            this.BuscarBTN.TabIndex = 12;
+            this.BuscarBTN.Click += new System.EventHandler(this.BuscarBTN_Click);
+            this.BuscarBTN.MouseLeave += new System.EventHandler(this.BuscarBTN_MouseLeave);
+            this.BuscarBTN.MouseHover += new System.EventHandler(this.BuscarBTN_MouseHover);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(8, 6);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(41, 13);
+            this.label2.TabIndex = 5;
+            this.label2.Text = "Search";
+            this.label2.Click += new System.EventHandler(this.BuscarBTN_Click);
+            this.label2.MouseLeave += new System.EventHandler(this.BuscarBTN_MouseLeave);
+            this.label2.MouseHover += new System.EventHandler(this.BuscarBTN_MouseHover);
+            // 
+            // pictureBox9
+            // 
+            this.pictureBox9.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox9.Image")));
+            this.pictureBox9.Location = new System.Drawing.Point(54, 2);
+            this.pictureBox9.Name = "pictureBox9";
+            this.pictureBox9.Size = new System.Drawing.Size(21, 22);
+            this.pictureBox9.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox9.TabIndex = 4;
+            this.pictureBox9.TabStop = false;
+            this.pictureBox9.Click += new System.EventHandler(this.BuscarBTN_Click);
+            this.pictureBox9.MouseLeave += new System.EventHandler(this.BuscarBTN_MouseLeave);
+            this.pictureBox9.MouseHover += new System.EventHandler(this.BuscarBTN_MouseHover);
+            // 
+            // Buscar
+            // 
+            this.Buscar.Location = new System.Drawing.Point(7, 511);
+            this.Buscar.Name = "Buscar";
+            this.Buscar.Size = new System.Drawing.Size(100, 20);
+            this.Buscar.TabIndex = 11;
+            this.Buscar.TextChanged += new System.EventHandler(this.Buscar_TextChanged);
             // 
             // Max
             // 
@@ -679,6 +734,9 @@ namespace PGTA_P1
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
             this.TextVisorPanel.ResumeLayout(false);
             this.TextVisorPanel.PerformLayout();
+            this.BuscarBTN.ResumeLayout(false);
+            this.BuscarBTN.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox9)).EndInit();
             this.nextBTN.ResumeLayout(false);
             this.nextBTN.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox7)).EndInit();
@@ -758,6 +816,10 @@ namespace PGTA_P1
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.Label Current;
         private System.Windows.Forms.PictureBox pictureBox8;
+        private System.Windows.Forms.TextBox Buscar;
+        private System.Windows.Forms.Panel BuscarBTN;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.PictureBox pictureBox9;
     }
 }
 

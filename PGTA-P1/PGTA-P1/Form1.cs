@@ -16,6 +16,7 @@ namespace PGTA_P1
     {
         List<DataBlock> DataBlockList;
         List<DataTable> DataTable1000;
+        List<Target> TargetList = new List<Target>();
         int numDTable = 0;
 
         string CatView = "All";
@@ -26,7 +27,7 @@ namespace PGTA_P1
         public const int WM_NCLBUTTONDOWN = 0xA1;
         public const int HT_CAPTION = 0x2;
         [DllImportAttribute("user32.dll")]
-        public static extern int SendMessage(IntPtr hWnd,int Msg, int wParam, int lParam);
+        public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
         [DllImportAttribute("user32.dll")]
         public static extern bool ReleaseCapture();
 
@@ -40,6 +41,7 @@ namespace PGTA_P1
             PGB1.Minimum = 1;
         }
 
+        //Filtrar per categoria (te en compte la pagina DataTable)
         private DataView FiltrarCatSour()
         {
             DataTable Inicial = DataTable1000[numDTable];
@@ -92,6 +94,7 @@ namespace PGTA_P1
             return ret;
         }
 
+        //filtrar per nom (només una taula gran)
         private DataView FiltrarID()
         {
             DataTable Final = new DataTable();
@@ -101,7 +104,7 @@ namespace PGTA_P1
             Final.Columns.Add("Vehicle Fleet");
             Final.Columns.Add("DataBlock Id");
             numDTable = 0;
-            while(numDTable<DataTable1000.Count())
+            while (numDTable < DataTable1000.Count())
             {
                 DataTable Input = FiltrarCatSour().ToTable();
                 DataRow[] F = new DataRow[999];
@@ -115,7 +118,7 @@ namespace PGTA_P1
                 numDTable++;
             }
             numDTable = 0;
-            
+
             DataView ret = Final.DefaultView;
             ret.Sort = "[Target ID/Address/T.Number]";
 
@@ -136,7 +139,7 @@ namespace PGTA_P1
             if (IdView != "All")
                 Filtrada = FiltrarID();
 
-            this.Cursor = Cursors.WaitCursor;   
+            this.Cursor = Cursors.WaitCursor;
             DataBlocksAll.DataSource = Filtrada.ToTable();
             DataBlocksAll.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             this.Cursor = Cursors.Default;
@@ -154,7 +157,7 @@ namespace PGTA_P1
             DataBlocViwer.Columns[0].Name = "Item name";
             DataBlocViwer.Columns[1].Name = "Message (DeCod)";
             DataBlocViwer.Columns[2].Name = "Units";
-            
+
 
             //Obrim els datafields
             int i = 0;
@@ -175,6 +178,12 @@ namespace PGTA_P1
             }
 
             DataBlocViwer.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+        }
+
+        //Agrupar targets en la lista targets
+        private void SetTargetList()
+        {
+            
         }
 
         //BTN sortida
@@ -202,7 +211,7 @@ namespace PGTA_P1
         }
         private void LoadBTN_Click(object sender, EventArgs e)
         {
-            DataInf.Text = "Loading...";
+            DataInf.Text = "Loading Data...";
             DataInf.ForeColor = Color.DarkGray;
             pictureBox5.BringToFront();
             OpenFileDialog openFileDialog = new OpenFileDialog
@@ -271,7 +280,7 @@ namespace PGTA_P1
                     if ((CAT == "10") || (CAT == "21"))
                     {
                         DataBlockList.Add(new DataBlock(BytesSave, Cat, DataBlockList.Count())); //Afegim a la llista general
-                        
+
                         if (DataBlockList.Last().From == "Multi.")
                             Multi = true;
                         else if (DataBlockList.Last().From == "SMR")
@@ -300,6 +309,35 @@ namespace PGTA_P1
                     PGB1.Step = j;
                     PGB1.PerformStep();
                 }
+
+                //Creem targets
+                PGB1.Value = 1;
+                PGB1.Refresh();
+                DataInf.Text = "Grouping Targets...";
+                DataInf.Refresh();
+                List<DataBlock> Copia = DataBlockList;
+                PGB1.Maximum = Copia.Count();
+                while (Copia.Count != 0)
+                {
+                    DataBlock Evaluat = Copia.First();
+                    if (TargetList.Count() != 0)
+                    {
+                        List<DataBlock> Filtrados = Copia.Where(x => x.TargetID == Evaluat.TargetID).ToList();
+                        TargetList.Add(new Target(Filtrados));
+                        Copia.RemoveAll(x => x.TargetID == Evaluat.TargetID);
+                        PGB1.Step = Filtrados.Count();
+                        PGB1.PerformStep();
+                    }
+                    else
+                    {
+                        List<DataBlock> Filtrados = Copia.Where(x => x.TargetID == Evaluat.TargetID).ToList();
+                        TargetList.Add(new Target(Filtrados));
+                        Copia.RemoveAll(x => x.TargetID == Evaluat.TargetID);
+                        PGB1.Step = Filtrados.Count();
+                        PGB1.PerformStep();
+                    }
+                }
+
                 this.DataTable1000.Add(DT);
                 this.Cursor = Cursors.Default;
                 PGB1.Visible = false;

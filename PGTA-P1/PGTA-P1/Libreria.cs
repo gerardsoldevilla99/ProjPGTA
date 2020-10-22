@@ -31,8 +31,9 @@ namespace PGTA_P1
 
         CatLib ItemsCatInfo;
         public string From = "No Data"; //ADS-B, SMR, otro
-        string ID = "No Data";
+        public string ID = "No Data";
         string Vehicle = "No Data";
+        public string TargetID;
 
         //A part de construir el DataBlock s'encarrega de repartir la info binaria en cada DataField
         public DataBlock(Queue<byte> Bytes, CatLib[] Categories, int id)
@@ -182,6 +183,8 @@ namespace PGTA_P1
                 }
 
                 GetFrom();
+                GetIDandV();
+                GetTargetID();
             }
         }
 
@@ -313,10 +316,36 @@ namespace PGTA_P1
 
         }
 
+        private void GetTargetID()
+        {
+            int c = DataFields.Count();
+            int i = 0; bool e = false;
+            while ((i < c) && (e == false))
+            {
+                DataField Evaluat = DataFields[i];
+                if (Cat == "10")
+                {
+                    if (Evaluat.Info.DataItemID[1] == "220")
+                    {
+                        e = true;
+                        this.TargetID = Evaluat.DeCode[0];
+                    }
+                }
+                else
+                {
+                    if (Evaluat.Info.DataItemID[1] == "080")
+                    {
+                        e = true;
+                        this.TargetID = Evaluat.DeCode[0];
+                    }
+                }
+                i++;
+            }
+        }
+
         //Vector per moestrar en DatBlocks (DGW)
         public string[] StringLin()
         {
-            GetIDandV();
             string[] Ret = new string[5];
             Ret[0] = Cat;
             Ret[1] = From;
@@ -2954,7 +2983,7 @@ namespace PGTA_P1
                             }
                         }
                     }
-                } //NO TEST
+                } 
                 else if (Info.DataItemID[1] == "400")
                 {
                     //I021/400 Receiver ID 
@@ -3039,12 +3068,25 @@ namespace PGTA_P1
         }
     }
 
-    public class Traget
+    public class Target
     {
         public List<DataBlock> DataBlocks = new List<DataBlock>();
         public string ID;
+        string TargetID;
         string Cat;
-        string Source; 
+        string Source;
+
+        public Target(List<DataBlock> DataBloksList)
+        {
+            DataBlocks = DataBloksList;
+            string[] Info = DataBlocks[0].StringLin();
+            Cat = Info[0];
+            Source = Info[1];
+            ID = Info[2];
+            TargetID = DataBlocks[0].TargetID;
+        }
+
+        public Target() { }
     }
 
     //A la espera de ser obsolet

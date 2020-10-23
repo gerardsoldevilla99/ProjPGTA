@@ -34,6 +34,7 @@ namespace PGTA_P1
             this.PGB1 = new System.Windows.Forms.ProgressBar();
             this.button1 = new System.Windows.Forms.Button();
             this.BarraSuperior = new System.Windows.Forms.Panel();
+            this.pictureBox8 = new System.Windows.Forms.PictureBox();
             this.FileName = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.LoadBTN = new System.Windows.Forms.Panel();
@@ -44,6 +45,19 @@ namespace PGTA_P1
             this.label3 = new System.Windows.Forms.Label();
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
             this.TextVisorPanel = new System.Windows.Forms.Panel();
+            this.BuscarBTN = new System.Windows.Forms.Panel();
+            this.label2 = new System.Windows.Forms.Label();
+            this.pictureBox9 = new System.Windows.Forms.PictureBox();
+            this.Buscar = new System.Windows.Forms.TextBox();
+            this.Max = new System.Windows.Forms.Label();
+            this.label13 = new System.Windows.Forms.Label();
+            this.Current = new System.Windows.Forms.Label();
+            this.nextBTN = new System.Windows.Forms.Panel();
+            this.label12 = new System.Windows.Forms.Label();
+            this.pictureBox7 = new System.Windows.Forms.PictureBox();
+            this.previousBTT = new System.Windows.Forms.Panel();
+            this.label11 = new System.Windows.Forms.Label();
+            this.pictureBox6 = new System.Windows.Forms.PictureBox();
             this.DataBlocViwer = new System.Windows.Forms.DataGridView();
             this.DataBlocksAll = new System.Windows.Forms.DataGridView();
             this.MapVisor = new System.Windows.Forms.Panel();
@@ -66,23 +80,20 @@ namespace PGTA_P1
             this.label9 = new System.Windows.Forms.Label();
             this.pictureBox5 = new System.Windows.Forms.PictureBox();
             this.DataInf = new System.Windows.Forms.Label();
-            this.previousBTT = new System.Windows.Forms.Panel();
-            this.label11 = new System.Windows.Forms.Label();
-            this.pictureBox6 = new System.Windows.Forms.PictureBox();
-            this.nextBTN = new System.Windows.Forms.Panel();
-            this.label12 = new System.Windows.Forms.Label();
-            this.pictureBox7 = new System.Windows.Forms.PictureBox();
-            this.Current = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
-            this.Max = new System.Windows.Forms.Label();
-            this.pictureBox8 = new System.Windows.Forms.PictureBox();
             this.BarraSuperior.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox8)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.LoadBTN.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.TextVisorBTN.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
             this.TextVisorPanel.SuspendLayout();
+            this.BuscarBTN.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox9)).BeginInit();
+            this.nextBTN.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox7)).BeginInit();
+            this.previousBTT.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox6)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DataBlocViwer)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DataBlocksAll)).BeginInit();
             this.MapVisor.SuspendLayout();
@@ -96,11 +107,6 @@ namespace PGTA_P1
             this.AllSBTN.SuspendLayout();
             this.AdsBTN.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox5)).BeginInit();
-            this.previousBTT.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox6)).BeginInit();
-            this.nextBTN.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox7)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox8)).BeginInit();
             this.SuspendLayout();
             // 
             // PGB1
@@ -131,6 +137,16 @@ namespace PGTA_P1
             this.BarraSuperior.Size = new System.Drawing.Size(1284, 25);
             this.BarraSuperior.TabIndex = 2;
             this.BarraSuperior.MouseDown += new System.Windows.Forms.MouseEventHandler(this.BarraSuperior_MouseDown);
+            // 
+            // pictureBox8
+            // 
+            this.pictureBox8.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox8.Image")));
+            this.pictureBox8.Location = new System.Drawing.Point(0, 0);
+            this.pictureBox8.Name = "pictureBox8";
+            this.pictureBox8.Size = new System.Drawing.Size(120, 25);
+            this.pictureBox8.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox8.TabIndex = 6;
+            this.pictureBox8.TabStop = false;
             // 
             // FileName
             // 
@@ -244,6 +260,8 @@ namespace PGTA_P1
             // 
             // TextVisorPanel
             // 
+            this.TextVisorPanel.Controls.Add(this.BuscarBTN);
+            this.TextVisorPanel.Controls.Add(this.Buscar);
             this.TextVisorPanel.Controls.Add(this.Max);
             this.TextVisorPanel.Controls.Add(this.label13);
             this.TextVisorPanel.Controls.Add(this.Current);
@@ -256,6 +274,155 @@ namespace PGTA_P1
             this.TextVisorPanel.Size = new System.Drawing.Size(1259, 536);
             this.TextVisorPanel.TabIndex = 6;
             this.TextVisorPanel.Visible = false;
+            // 
+            // BuscarBTN
+            // 
+            this.BuscarBTN.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(209)))), ((int)(((byte)(222)))), ((int)(((byte)(230)))));
+            this.BuscarBTN.Controls.Add(this.label2);
+            this.BuscarBTN.Controls.Add(this.pictureBox9);
+            this.BuscarBTN.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.BuscarBTN.Location = new System.Drawing.Point(116, 509);
+            this.BuscarBTN.Name = "BuscarBTN";
+            this.BuscarBTN.Size = new System.Drawing.Size(80, 25);
+            this.BuscarBTN.TabIndex = 12;
+            this.BuscarBTN.Click += new System.EventHandler(this.BuscarBTN_Click);
+            this.BuscarBTN.MouseLeave += new System.EventHandler(this.BuscarBTN_MouseLeave);
+            this.BuscarBTN.MouseHover += new System.EventHandler(this.BuscarBTN_MouseHover);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(8, 6);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(41, 13);
+            this.label2.TabIndex = 5;
+            this.label2.Text = "Search";
+            this.label2.Click += new System.EventHandler(this.BuscarBTN_Click);
+            this.label2.MouseLeave += new System.EventHandler(this.BuscarBTN_MouseLeave);
+            this.label2.MouseHover += new System.EventHandler(this.BuscarBTN_MouseHover);
+            // 
+            // pictureBox9
+            // 
+            this.pictureBox9.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox9.Image")));
+            this.pictureBox9.Location = new System.Drawing.Point(54, 2);
+            this.pictureBox9.Name = "pictureBox9";
+            this.pictureBox9.Size = new System.Drawing.Size(21, 22);
+            this.pictureBox9.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox9.TabIndex = 4;
+            this.pictureBox9.TabStop = false;
+            this.pictureBox9.Click += new System.EventHandler(this.BuscarBTN_Click);
+            this.pictureBox9.MouseLeave += new System.EventHandler(this.BuscarBTN_MouseLeave);
+            this.pictureBox9.MouseHover += new System.EventHandler(this.BuscarBTN_MouseHover);
+            // 
+            // Buscar
+            // 
+            this.Buscar.Location = new System.Drawing.Point(7, 511);
+            this.Buscar.Name = "Buscar";
+            this.Buscar.Size = new System.Drawing.Size(100, 20);
+            this.Buscar.TabIndex = 11;
+            this.Buscar.TextChanged += new System.EventHandler(this.Buscar_TextChanged);
+            // 
+            // Max
+            // 
+            this.Max.AutoSize = true;
+            this.Max.Location = new System.Drawing.Point(421, 515);
+            this.Max.Name = "Max";
+            this.Max.Size = new System.Drawing.Size(28, 13);
+            this.Max.TabIndex = 10;
+            this.Max.Text = "###";
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(410, 515);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(12, 13);
+            this.label13.TabIndex = 9;
+            this.label13.Text = "/";
+            // 
+            // Current
+            // 
+            this.Current.AutoSize = true;
+            this.Current.Location = new System.Drawing.Point(384, 515);
+            this.Current.Name = "Current";
+            this.Current.Size = new System.Drawing.Size(28, 13);
+            this.Current.TabIndex = 8;
+            this.Current.Text = "###";
+            // 
+            // nextBTN
+            // 
+            this.nextBTN.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(209)))), ((int)(((byte)(222)))), ((int)(((byte)(230)))));
+            this.nextBTN.Controls.Add(this.label12);
+            this.nextBTN.Controls.Add(this.pictureBox7);
+            this.nextBTN.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.nextBTN.Location = new System.Drawing.Point(550, 508);
+            this.nextBTN.Name = "nextBTN";
+            this.nextBTN.Size = new System.Drawing.Size(80, 25);
+            this.nextBTN.TabIndex = 7;
+            this.nextBTN.Click += new System.EventHandler(this.nextBTN_Click);
+            this.nextBTN.MouseLeave += new System.EventHandler(this.nextBTN_MouseLeave);
+            this.nextBTN.MouseHover += new System.EventHandler(this.nextBTN_MouseHover);
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(16, 5);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(29, 13);
+            this.label12.TabIndex = 5;
+            this.label12.Text = "Next";
+            this.label12.Click += new System.EventHandler(this.nextBTN_Click);
+            this.label12.MouseLeave += new System.EventHandler(this.nextBTN_MouseLeave);
+            this.label12.MouseHover += new System.EventHandler(this.nextBTN_MouseHover);
+            // 
+            // pictureBox7
+            // 
+            this.pictureBox7.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox7.Image")));
+            this.pictureBox7.Location = new System.Drawing.Point(54, 1);
+            this.pictureBox7.Name = "pictureBox7";
+            this.pictureBox7.Size = new System.Drawing.Size(21, 22);
+            this.pictureBox7.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox7.TabIndex = 4;
+            this.pictureBox7.TabStop = false;
+            this.pictureBox7.Click += new System.EventHandler(this.nextBTN_Click);
+            this.pictureBox7.MouseLeave += new System.EventHandler(this.nextBTN_MouseLeave);
+            this.pictureBox7.MouseHover += new System.EventHandler(this.nextBTN_MouseHover);
+            // 
+            // previousBTT
+            // 
+            this.previousBTT.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(209)))), ((int)(((byte)(222)))), ((int)(((byte)(230)))));
+            this.previousBTT.Controls.Add(this.label11);
+            this.previousBTT.Controls.Add(this.pictureBox6);
+            this.previousBTT.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.previousBTT.Location = new System.Drawing.Point(464, 508);
+            this.previousBTT.Name = "previousBTT";
+            this.previousBTT.Size = new System.Drawing.Size(80, 25);
+            this.previousBTT.TabIndex = 6;
+            this.previousBTT.Click += new System.EventHandler(this.previousBTT_Click);
+            this.previousBTT.MouseLeave += new System.EventHandler(this.previousBTT_MouseLeave);
+            this.previousBTT.MouseHover += new System.EventHandler(this.previousBTT_MouseHover);
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(25, 5);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(48, 13);
+            this.label11.TabIndex = 5;
+            this.label11.Text = "Previous";
+            this.label11.Click += new System.EventHandler(this.previousBTT_Click);
+            this.label11.MouseLeave += new System.EventHandler(this.previousBTT_MouseLeave);
+            this.label11.MouseHover += new System.EventHandler(this.previousBTT_MouseHover);
+            // 
+            // pictureBox6
+            // 
+            this.pictureBox6.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox6.Image")));
+            this.pictureBox6.Location = new System.Drawing.Point(1, 1);
+            this.pictureBox6.Name = "pictureBox6";
+            this.pictureBox6.Size = new System.Drawing.Size(21, 22);
+            this.pictureBox6.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox6.TabIndex = 4;
+            this.pictureBox6.TabStop = false;
             // 
             // DataBlocViwer
             // 
@@ -455,9 +622,9 @@ namespace PGTA_P1
             this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label8.Location = new System.Drawing.Point(15, 6);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(29, 13);
+            this.label8.Size = new System.Drawing.Size(31, 13);
             this.label8.TabIndex = 5;
-            this.label8.Text = "PSR";
+            this.label8.Text = "SMR";
             this.label8.Click += new System.EventHandler(this.PSRBTN_Click);
             this.label8.MouseLeave += new System.EventHandler(this.PSRBTN_MouseLeave);
             this.label8.MouseHover += new System.EventHandler(this.PSRBTN_MouseHover);
@@ -536,118 +703,6 @@ namespace PGTA_P1
             this.DataInf.TabIndex = 8;
             this.DataInf.Text = "No data loaded";
             // 
-            // previousBTT
-            // 
-            this.previousBTT.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(209)))), ((int)(((byte)(222)))), ((int)(((byte)(230)))));
-            this.previousBTT.Controls.Add(this.label11);
-            this.previousBTT.Controls.Add(this.pictureBox6);
-            this.previousBTT.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.previousBTT.Location = new System.Drawing.Point(464, 508);
-            this.previousBTT.Name = "previousBTT";
-            this.previousBTT.Size = new System.Drawing.Size(80, 25);
-            this.previousBTT.TabIndex = 6;
-            this.previousBTT.Click += new System.EventHandler(this.previousBTT_Click);
-            this.previousBTT.MouseLeave += new System.EventHandler(this.previousBTT_MouseLeave);
-            this.previousBTT.MouseHover += new System.EventHandler(this.previousBTT_MouseHover);
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(25, 5);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(48, 13);
-            this.label11.TabIndex = 5;
-            this.label11.Text = "Previous";
-            this.label11.Click += new System.EventHandler(this.previousBTT_Click);
-            this.label11.MouseLeave += new System.EventHandler(this.previousBTT_MouseLeave);
-            this.label11.MouseHover += new System.EventHandler(this.previousBTT_MouseHover);
-            // 
-            // pictureBox6
-            // 
-            this.pictureBox6.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox6.Image")));
-            this.pictureBox6.Location = new System.Drawing.Point(1, 1);
-            this.pictureBox6.Name = "pictureBox6";
-            this.pictureBox6.Size = new System.Drawing.Size(21, 22);
-            this.pictureBox6.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBox6.TabIndex = 4;
-            this.pictureBox6.TabStop = false;
-            // 
-            // nextBTN
-            // 
-            this.nextBTN.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(209)))), ((int)(((byte)(222)))), ((int)(((byte)(230)))));
-            this.nextBTN.Controls.Add(this.label12);
-            this.nextBTN.Controls.Add(this.pictureBox7);
-            this.nextBTN.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.nextBTN.Location = new System.Drawing.Point(550, 508);
-            this.nextBTN.Name = "nextBTN";
-            this.nextBTN.Size = new System.Drawing.Size(80, 25);
-            this.nextBTN.TabIndex = 7;
-            this.nextBTN.Click += new System.EventHandler(this.nextBTN_Click);
-            this.nextBTN.MouseLeave += new System.EventHandler(this.nextBTN_MouseLeave);
-            this.nextBTN.MouseHover += new System.EventHandler(this.nextBTN_MouseHover);
-            // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(16, 5);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(29, 13);
-            this.label12.TabIndex = 5;
-            this.label12.Text = "Next";
-            this.label12.Click += new System.EventHandler(this.nextBTN_Click);
-            this.label12.MouseLeave += new System.EventHandler(this.nextBTN_MouseLeave);
-            this.label12.MouseHover += new System.EventHandler(this.nextBTN_MouseHover);
-            // 
-            // pictureBox7
-            // 
-            this.pictureBox7.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox7.Image")));
-            this.pictureBox7.Location = new System.Drawing.Point(54, 1);
-            this.pictureBox7.Name = "pictureBox7";
-            this.pictureBox7.Size = new System.Drawing.Size(21, 22);
-            this.pictureBox7.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBox7.TabIndex = 4;
-            this.pictureBox7.TabStop = false;
-            this.pictureBox7.Click += new System.EventHandler(this.nextBTN_Click);
-            this.pictureBox7.MouseLeave += new System.EventHandler(this.nextBTN_MouseLeave);
-            this.pictureBox7.MouseHover += new System.EventHandler(this.nextBTN_MouseHover);
-            // 
-            // Current
-            // 
-            this.Current.AutoSize = true;
-            this.Current.Location = new System.Drawing.Point(384, 515);
-            this.Current.Name = "Current";
-            this.Current.Size = new System.Drawing.Size(28, 13);
-            this.Current.TabIndex = 8;
-            this.Current.Text = "###";
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(410, 515);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(12, 13);
-            this.label13.TabIndex = 9;
-            this.label13.Text = "/";
-            // 
-            // Max
-            // 
-            this.Max.AutoSize = true;
-            this.Max.Location = new System.Drawing.Point(421, 515);
-            this.Max.Name = "Max";
-            this.Max.Size = new System.Drawing.Size(28, 13);
-            this.Max.TabIndex = 10;
-            this.Max.Text = "###";
-            // 
-            // pictureBox8
-            // 
-            this.pictureBox8.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox8.Image")));
-            this.pictureBox8.Location = new System.Drawing.Point(0, 0);
-            this.pictureBox8.Name = "pictureBox8";
-            this.pictureBox8.Size = new System.Drawing.Size(120, 25);
-            this.pictureBox8.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBox8.TabIndex = 6;
-            this.pictureBox8.TabStop = false;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -669,6 +724,7 @@ namespace PGTA_P1
             this.Text = "Form1";
             this.BarraSuperior.ResumeLayout(false);
             this.BarraSuperior.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox8)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.LoadBTN.ResumeLayout(false);
             this.LoadBTN.PerformLayout();
@@ -678,6 +734,15 @@ namespace PGTA_P1
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
             this.TextVisorPanel.ResumeLayout(false);
             this.TextVisorPanel.PerformLayout();
+            this.BuscarBTN.ResumeLayout(false);
+            this.BuscarBTN.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox9)).EndInit();
+            this.nextBTN.ResumeLayout(false);
+            this.nextBTN.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox7)).EndInit();
+            this.previousBTT.ResumeLayout(false);
+            this.previousBTT.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox6)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.DataBlocViwer)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.DataBlocksAll)).EndInit();
             this.MapVisor.ResumeLayout(false);
@@ -699,13 +764,6 @@ namespace PGTA_P1
             this.AdsBTN.ResumeLayout(false);
             this.AdsBTN.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox5)).EndInit();
-            this.previousBTT.ResumeLayout(false);
-            this.previousBTT.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox6)).EndInit();
-            this.nextBTN.ResumeLayout(false);
-            this.nextBTN.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox7)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox8)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -758,6 +816,10 @@ namespace PGTA_P1
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.Label Current;
         private System.Windows.Forms.PictureBox pictureBox8;
+        private System.Windows.Forms.TextBox Buscar;
+        private System.Windows.Forms.Panel BuscarBTN;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.PictureBox pictureBox9;
     }
 }
 

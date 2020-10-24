@@ -287,6 +287,24 @@ namespace PGTA_P1
                         }
                         i++;
                     }
+
+                    if (e == false) 
+                    {
+                        i = 0;
+                    while ((i < c) && (e == false))
+                    {
+                        DataField Evaluat = DataFields[i];
+                        if (Cat == "10")
+                        {
+                            if (Evaluat.Info.DataItemID[1] == "000")
+                            {
+                                e = true;
+                                this.TargetID = "Not a target";
+                            }
+                        }
+                        i++;
+                    }
+                    }
                 }
             }
 
@@ -3073,20 +3091,36 @@ namespace PGTA_P1
         public List<DataBlock> DataBlocks = new List<DataBlock>();
         public string ID;
         string TargetID;
-        string Cat;
-        string Source;
+        string V;
 
-        public Target(List<DataBlock> DataBloksList)
+        public Target(List<DataBlock> DataBlocksList)
         {
-            DataBlocks = DataBloksList;
+            DataBlocks = DataBlocksList;
             string[] Info = DataBlocks[0].StringLin();
-            Cat = Info[0];
-            Source = Info[1];
             ID = Info[2];
             TargetID = DataBlocks[0].TargetID;
+            V = Info[3];
+            int i = 1; 
+            while((V == "No Data")&&(i<DataBlocks.Count()))
+            {
+                V = DataBlocks[0].StringLin()[3];
+                i++;
+            }
+            
         }
 
         public Target() { }
+
+        public string[] StringLin()
+        {
+            string[] Ret = new string[4];
+            Ret[0] = ID;
+            Ret[1] = TargetID;
+            Ret[2] = V;
+            Ret[3] = Convert.ToString(DataBlocks.Count());
+
+            return Ret;
+        }
     }
 
     //A la espera de ser obsolet

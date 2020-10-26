@@ -45,6 +45,10 @@ namespace PGTA_P1
             this.label3 = new System.Windows.Forms.Label();
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
             this.TextVisorPanel = new System.Windows.Forms.Panel();
+            this.TargetsShow = new System.Windows.Forms.DataGridView();
+            this.TargetBTN = new System.Windows.Forms.Panel();
+            this.label14 = new System.Windows.Forms.Label();
+            this.pictureBox10 = new System.Windows.Forms.PictureBox();
             this.BuscarBTN = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
             this.pictureBox9 = new System.Windows.Forms.PictureBox();
@@ -88,6 +92,9 @@ namespace PGTA_P1
             this.TextVisorBTN.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
             this.TextVisorPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.TargetsShow)).BeginInit();
+            this.TargetBTN.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox10)).BeginInit();
             this.BuscarBTN.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox9)).BeginInit();
             this.nextBTN.SuspendLayout();
@@ -260,6 +267,8 @@ namespace PGTA_P1
             // 
             // TextVisorPanel
             // 
+            this.TextVisorPanel.Controls.Add(this.TargetsShow);
+            this.TextVisorPanel.Controls.Add(this.TargetBTN);
             this.TextVisorPanel.Controls.Add(this.BuscarBTN);
             this.TextVisorPanel.Controls.Add(this.Buscar);
             this.TextVisorPanel.Controls.Add(this.Max);
@@ -275,13 +284,62 @@ namespace PGTA_P1
             this.TextVisorPanel.TabIndex = 6;
             this.TextVisorPanel.Visible = false;
             // 
+            // TargetsShow
+            // 
+            this.TargetsShow.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.TargetsShow.Location = new System.Drawing.Point(3, 3);
+            this.TargetsShow.Name = "TargetsShow";
+            this.TargetsShow.Size = new System.Drawing.Size(627, 502);
+            this.TargetsShow.TabIndex = 14;
+            this.TargetsShow.VirtualMode = true;
+            this.TargetsShow.Visible = false;
+            // 
+            // TargetBTN
+            // 
+            this.TargetBTN.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(209)))), ((int)(((byte)(222)))), ((int)(((byte)(230)))));
+            this.TargetBTN.Controls.Add(this.label14);
+            this.TargetBTN.Controls.Add(this.pictureBox10);
+            this.TargetBTN.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.TargetBTN.Location = new System.Drawing.Point(202, 508);
+            this.TargetBTN.Name = "TargetBTN";
+            this.TargetBTN.Size = new System.Drawing.Size(80, 25);
+            this.TargetBTN.TabIndex = 13;
+            this.TargetBTN.Click += new System.EventHandler(this.TargetBTN_Click);
+            this.TargetBTN.MouseLeave += new System.EventHandler(this.TargetBTN_MouseLeave);
+            this.TargetBTN.MouseHover += new System.EventHandler(this.TargetBTN_MouseHover);
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(8, 6);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(43, 13);
+            this.label14.TabIndex = 5;
+            this.label14.Text = "Targets";
+            this.label14.Click += new System.EventHandler(this.TargetBTN_Click);
+            this.label14.MouseLeave += new System.EventHandler(this.TargetBTN_MouseLeave);
+            this.label14.MouseHover += new System.EventHandler(this.TargetBTN_MouseHover);
+            // 
+            // pictureBox10
+            // 
+            this.pictureBox10.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox10.Image")));
+            this.pictureBox10.Location = new System.Drawing.Point(54, 2);
+            this.pictureBox10.Name = "pictureBox10";
+            this.pictureBox10.Size = new System.Drawing.Size(21, 22);
+            this.pictureBox10.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox10.TabIndex = 4;
+            this.pictureBox10.TabStop = false;
+            this.pictureBox10.Click += new System.EventHandler(this.TargetBTN_Click);
+            this.pictureBox10.MouseLeave += new System.EventHandler(this.TargetBTN_MouseLeave);
+            this.pictureBox10.MouseHover += new System.EventHandler(this.TargetBTN_MouseHover);
+            // 
             // BuscarBTN
             // 
             this.BuscarBTN.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(209)))), ((int)(((byte)(222)))), ((int)(((byte)(230)))));
             this.BuscarBTN.Controls.Add(this.label2);
             this.BuscarBTN.Controls.Add(this.pictureBox9);
             this.BuscarBTN.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.BuscarBTN.Location = new System.Drawing.Point(116, 509);
+            this.BuscarBTN.Location = new System.Drawing.Point(116, 508);
             this.BuscarBTN.Name = "BuscarBTN";
             this.BuscarBTN.Size = new System.Drawing.Size(80, 25);
             this.BuscarBTN.TabIndex = 12;
@@ -697,7 +755,7 @@ namespace PGTA_P1
             this.DataInf.AutoSize = true;
             this.DataInf.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.DataInf.ForeColor = System.Drawing.Color.Red;
-            this.DataInf.Location = new System.Drawing.Point(1154, 34);
+            this.DataInf.Location = new System.Drawing.Point(1136, 34);
             this.DataInf.Name = "DataInf";
             this.DataInf.Size = new System.Drawing.Size(131, 20);
             this.DataInf.TabIndex = 8;
@@ -734,6 +792,10 @@ namespace PGTA_P1
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
             this.TextVisorPanel.ResumeLayout(false);
             this.TextVisorPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.TargetsShow)).EndInit();
+            this.TargetBTN.ResumeLayout(false);
+            this.TargetBTN.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox10)).EndInit();
             this.BuscarBTN.ResumeLayout(false);
             this.BuscarBTN.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox9)).EndInit();
@@ -820,6 +882,10 @@ namespace PGTA_P1
         private System.Windows.Forms.Panel BuscarBTN;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.PictureBox pictureBox9;
+        private System.Windows.Forms.Panel TargetBTN;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.PictureBox pictureBox10;
+        private System.Windows.Forms.DataGridView TargetsShow;
     }
 }
 

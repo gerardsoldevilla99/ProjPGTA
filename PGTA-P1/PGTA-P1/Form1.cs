@@ -17,6 +17,7 @@ namespace PGTA_P1
         List<DataBlock> DataBlockList;
         List<DataTable> DataTable1000;
         List<Target> TargetList = new List<Target>();
+        DataTable TargetTable = new DataTable();
         int numDTable = 0;
 
         string CatView = "All";
@@ -39,6 +40,11 @@ namespace PGTA_P1
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
 
             PGB1.Minimum = 1;
+
+            TargetTable.Columns.Add("Call sign");
+            TargetTable.Columns.Add("Target Address");
+            TargetTable.Columns.Add("Vehicle Fleet");
+            TargetTable.Columns.Add("N. DataBlocks");
         }
 
         //Filtrar per categoria (te en compte la pagina DataTable)
@@ -148,6 +154,32 @@ namespace PGTA_P1
             DataInf.Refresh();
         }
 
+        //Actualitzar el DGV dels targets
+        private void TargetShow_Act()
+        {
+            DataTable NewTargetTable = new DataTable();
+            NewTargetTable.Columns.Add("Call sign");
+            NewTargetTable.Columns.Add("Target Address");
+            NewTargetTable.Columns.Add("Vehicle Fleet");
+            NewTargetTable.Columns.Add("N. DataBlocks");
+
+            if (IdView == "All")
+                NewTargetTable = TargetTable;
+            else
+            {
+                DataRow[] F = new DataRow[999];
+                F = TargetTable.Select("[Call sign] LIKE '" + IdView + "%'");
+                int j = 0;
+                while (j < F.Count())
+                {
+                    NewTargetTable.ImportRow(F[j]);
+                    j++;
+                }
+            }
+
+            TargetsShow.DataSource = NewTargetTable;
+        }
+
         //Actualització de DGV DataBlockView
         private void DataBlockViwerDGV_Act(DataBlock Element)
         {
@@ -178,12 +210,6 @@ namespace PGTA_P1
             }
 
             DataBlocViwer.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-        }
-
-        //Agrupar targets en la lista targets
-        private void SetTargetList()
-        {
-            
         }
 
         //BTN sortida
@@ -310,13 +336,14 @@ namespace PGTA_P1
                     PGB1.PerformStep();
                 }
 
-                //Creem targets
+                //Creem targets i poblem datagrid targets
                 PGB1.Value = 1;
                 PGB1.Refresh();
                 DataInf.Text = "Grouping Targets...";
                 DataInf.Refresh();
-                List<DataBlock> Copia = DataBlockList;
+                List<DataBlock> Copia = DataBlockList.ToList();
                 PGB1.Maximum = Copia.Count();
+
                 while (Copia.Count != 0)
                 {
                     DataBlock Evaluat = Copia.First();
@@ -327,6 +354,7 @@ namespace PGTA_P1
                         Copia.RemoveAll(x => x.TargetID == Evaluat.TargetID);
                         PGB1.Step = Filtrados.Count();
                         PGB1.PerformStep();
+                        TargetTable.Rows.Add(TargetList.Last().StringLin());
                     }
                     else
                     {
@@ -335,8 +363,10 @@ namespace PGTA_P1
                         Copia.RemoveAll(x => x.TargetID == Evaluat.TargetID);
                         PGB1.Step = Filtrados.Count();
                         PGB1.PerformStep();
+                        TargetTable.Rows.Add(TargetList.Last().StringLin());
                     }
                 }
+                TargetShow_Act();
 
                 this.DataTable1000.Add(DT);
                 this.Cursor = Cursors.Default;
@@ -597,7 +627,7 @@ namespace PGTA_P1
         //BTN Psr (S)
         private void PSRBTN_Click(object sender, EventArgs e)
         {
-            this.SourView = "TYP: SMR";
+            this.SourView = "SMR";
             MultiBTN.BorderStyle = BorderStyle.None;
             PSRBTN.BorderStyle = BorderStyle.FixedSingle;
             AdsBTN.BorderStyle = BorderStyle.None;
@@ -684,6 +714,7 @@ namespace PGTA_P1
             if (IdView == "")
                 this.IdView = "All";
             DataBlocksDGV_Act();
+            TargetShow_Act();
             this.Cursor = Cursors.Default;
             DataInf.Text = "Data loaded";
             DataInf.ForeColor = Color.Green;
@@ -702,9 +733,47 @@ namespace PGTA_P1
             {
                 this.IdView = "All";
                 DataBlocksDGV_Act();
+                TargetShow_Act();
             }
         }
 
-        
+        //BTN target
+        private void TargetBTN_Click(object sender, EventArgs e)
+        {
+            if (TargetsShow.Visible == false)
+            {
+                TargetBTN.BorderStyle = BorderStyle.FixedSingle;
+                TargetBTN.BackColor = Color.FromArgb(0, 66, 108);
+                TargetsShow.Visible = true;
+                DataBlocksAll.Visible = false;
+                nextBTN.Visible = false;
+                previousBTT.Visible = false;
+                label13.Visible = false;
+                Max.Visible = false;
+                Current.Visible = false;
+                TargetShow_Act();
+            }
+            else
+            {
+                TargetBTN.BorderStyle = BorderStyle.None;
+                TargetBTN.BackColor = Color.FromArgb(209, 222, 230);
+                TargetsShow.Visible = false;
+                DataBlocksAll.Visible = true;
+                nextBTN.Visible = true;
+                previousBTT.Visible = true;
+                label13.Visible = true;
+                Max.Visible = true;
+                Current.Visible = true;
+            }
+            
+        }
+        private void TargetBTN_MouseHover(object sender, EventArgs e)
+        {
+            TargetBTN.BackColor = Color.FromArgb(0, 66, 108);
+        }
+        private void TargetBTN_MouseLeave(object sender, EventArgs e)
+        {
+            TargetBTN.BackColor = Color.FromArgb(209, 222, 230);
+        }
     }
 }

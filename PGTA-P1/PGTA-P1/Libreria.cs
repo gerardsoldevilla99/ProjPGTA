@@ -35,86 +35,45 @@ namespace PGTA_P1
         string Vehicle = "No Data";
         public string TargetID;
 
-        //A part de construir el DataBlock s'encarrega de repartir la info binaria en cada DataField
         public DataBlock(Queue<byte> Bytes, CatLib[] Categories, int id)
         {
-            if (Bytes.Count != 0)
+            //Dades inicials
+            this.ID_Intern = Convert.ToString(id);
+            this.Original = Bytes.ToList();
+            this.Cat = Convert.ToString(Bytes.Dequeue());
+
+            if (Cat == Convert.ToString(Categories[0].Num))
+                ItemsCatInfo = Categories[0];
+            else
+                ItemsCatInfo = Categories[1];
+
+            this.Long[0] = Bytes.Dequeue();
+            this.Long[1] = Bytes.Dequeue();
+
+            //Formem FSPEL
+            SetFSPEL(Bytes);
+
+            //Identifiquem DataItems en cada DataField, assignem els octets indicats en cada cas i decodifiquem.
+            char[] EvaluarFSPEL = FSPEL.ToCharArray();
+            int NumEnFSPEL = 0;
+            while (NumEnFSPEL < EvaluarFSPEL.Count())
             {
-                this.ID_Intern = Convert.ToString(id);
-                this.Original = Bytes.ToList();
-                this.Cat = Convert.ToString(Bytes.Dequeue());
-
-                if (Cat == Convert.ToString(Categories[0].Num))
-                    ItemsCatInfo = Categories[0];
-                else
-                    ItemsCatInfo = Categories[1];
-
-                this.Long[0] = Bytes.Dequeue();
-                this.Long[1] = Bytes.Dequeue();
-
-                //Proces de set del FSPEL.
-                bool FSPEL_Control = true;
-                while (FSPEL_Control == true)
+                if (EvaluarFSPEL[NumEnFSPEL] == '1')
                 {
-                    if (FSPEL_Control == true)
+                    //Busquem dataItem corresponent
+                    int NumDataItem = 0;
+                    bool e = false;
+                    DataField New = new DataField();
+                    while ((NumDataItem < ItemsCatInfo.ItemsCat.Count())&&(e == false))
                     {
-                        byte New = Bytes.Dequeue();
-                        string ByteString = Convert.ToString(New, 2).PadLeft(8, '0');
-                        FSPEL = "" + FSPEL + "" + ByteString + ""; //Unim FSPEL
-
-                        //Mirem si l'ultim bit es un 1 o un 0.
-                        char[] Bits = ByteString.ToCharArray();
-                        if (Bits[7] == '0')
-                            FSPEL_Control = false;
-                    }
-                }
-
-                //Proces de set dels DataFields. Primer de tot hem d'analitzar el FSPEL, despres amb la info extreta dels DataItems creem dataFields.
-                char[] Bitss = FSPEL.ToCharArray();
-                int bit = 0;
-                int oct = 1;
-                while (bit < Bitss.Count())
-                {
-                    if (bit != ((8 * oct) - 1)) //Si el bit no es un FX
-                    {
-                        char Valor = Bitss[bit]; //Si igual a 1 item present, igual a 0 no present
-
-                        //Recorrido per trobar la info del item-field
-                        DataItem Valorant = new DataItem();
-                        int ii = 0;
-                        bool E = false;
-                        while ((ii < ItemsCatInfo.ItemsCat.Count()) && (E == false))
+                        if (ItemsCatInfo.ItemsCat[NumDataItem].FRN == NumEnFSPEL)
                         {
-                            if (ItemsCatInfo.ItemsCat[ii].FRN_B == bit)
-                            {
-                                Valorant = ItemsCatInfo.ItemsCat[ii];
-                                E = true;
-                            }
-                            ii++;    
-                        }
+                            New.Info = ItemsCatInfo.ItemsCat[NumDataItem];
 
-                        if (Valor == '1') //Item present al data field, procedim a guardarho a la nostra llista local
-                        {
-                            DataField New = new DataField();
-                            New.Info = Valorant;
-
-                            int MaxOct = New.Info.Len; //Longitud de les dades del item, 0 variable major de 100 repetitiu. 
-                            if (MaxOct > 100)//Repetitiu
+                            //Assignem octets corresponents al dataField
+                            if (New.Info.Len == 0) //Variable
                             {
-                                byte Evaluat = Bytes.Dequeue();
-                                New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
-
-                                int repeticions = Convert.ToInt32(Evaluat);
-                                int i = 0;
-                                while (i < repeticions)
-                                {
-                                    New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
-                                    i++;
-                                }
-                            }
-                            else if (MaxOct == 0)//variable
-                            {
-                                if (Valorant.DataItemID[1] == "295")
+                                if (New.Info.DataItemID[1] == "295")
                                 {
                                     string TOTAL = "";
                                     bool DataFieldB = true;
@@ -137,8 +96,8 @@ namespace PGTA_P1
                                     while (k < TotChar.Count())
                                     {
                                         if (TotChar[k] == '1')
-                                            if(k != (8*instant)-1)
-                                                if(Bytes.Count!= 0)
+                                            if (k != (8 * instant) - 1)
+                                                if (Bytes.Count != 0)
                                                     New.Octets.Enqueue(Bytes.Dequeue());
                                         k++;
                                     }
@@ -159,34 +118,221 @@ namespace PGTA_P1
                                     }
                                 }
                             }
-                            else//limitat
+                            else if (New.Info.Len > 100) //Repetitiu
+                            {
+                                byte Evaluat = Bytes.Dequeue();
+                                New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
+
+                                int repeticions = Convert.ToInt32(Evaluat);
+                                int i = 0;
+                                while (i < repeticions)
+                                {
+                                    New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
+                                    i++;
+                                }
+                            }
+                            else //Fixe
                             {
                                 int i = 0;
-                                while (i < MaxOct)
+                                while (i < New.Info.Len)
                                 {
                                     New.Octets.Enqueue(Bytes.Dequeue());
                                     i++;
                                 }
                             }
+
                             //Deocodifiquem info del data field.
                             New.Decodificar();
                             //Afegim el DataField creat a la nostra llista de datafields
                             DataFields.Add(New);
+
+                            e = true;
                         }
+                        else
+                            NumDataItem++;
                     }
-                    else
-                    {
-                        oct++;
-                    }
-                        
-                    bit++;
                 }
 
-                GetFrom();
-                GetIDandV();
-                GetTargetID();
+                NumEnFSPEL++;
+            }
+
+            //Adquirim dades de primer orde
+            GetFrom();
+            GetIDandV();
+            GetTargetID();
+        }
+
+        private void SetFSPEL(Queue<byte> Bytes)
+        {
+            bool FSPEL_Control = true;
+            while (FSPEL_Control == true)
+            {
+                if (FSPEL_Control == true)
+                {
+                    byte New = Bytes.Dequeue();
+                    string ByteString = Convert.ToString(New, 2).PadLeft(8, '0');
+                    FSPEL = "" + FSPEL + "" + ByteString + ""; //Unim FSPEL
+
+                    //Mirem si l'ultim bit es un 1 o un 0.
+                    char[] Bits = ByteString.ToCharArray();
+                    if (Bits[7] == '0')
+                        FSPEL_Control = false;
+                }
             }
         }
+
+        ////A part de construir el DataBlock s'encarrega de repartir la info binaria en cada DataField
+        //public DataBlock(Queue<byte> Bytes, CatLib[] Categories, int id)
+        //{
+        //    if (Bytes.Count != 0)
+        //    {
+        //        this.ID_Intern = Convert.ToString(id);
+        //        this.Original = Bytes.ToList();
+        //        this.Cat = Convert.ToString(Bytes.Dequeue());
+
+        //        if (Cat == Convert.ToString(Categories[0].Num))
+        //            ItemsCatInfo = Categories[0];
+        //        else
+        //            ItemsCatInfo = Categories[1];
+
+        //        this.Long[0] = Bytes.Dequeue();
+        //        this.Long[1] = Bytes.Dequeue();
+
+        //        //Proces de set del FSPEL.
+        //        bool FSPEL_Control = true;
+        //        while (FSPEL_Control == true)
+        //        {
+        //            if (FSPEL_Control == true)
+        //            {
+        //                byte New = Bytes.Dequeue();
+        //                string ByteString = Convert.ToString(New, 2).PadLeft(8, '0');
+        //                FSPEL = "" + FSPEL + "" + ByteString + ""; //Unim FSPEL
+
+        //                //Mirem si l'ultim bit es un 1 o un 0.
+        //                char[] Bits = ByteString.ToCharArray();
+        //                if (Bits[7] == '0')
+        //                    FSPEL_Control = false;
+        //            }
+        //        }
+
+        //        //Proces de set dels DataFields. Primer de tot hem d'analitzar el FSPEL, despres amb la info extreta dels DataItems creem dataFields.
+        //        char[] Bitss = FSPEL.ToCharArray();
+        //        int bit = 0;
+        //        int oct = 1;
+        //        while (bit < Bitss.Count())
+        //        {
+        //            if (bit != ((8 * oct) - 1)) //Si el bit no es un FX
+        //            {
+        //                char Valor = Bitss[bit]; //Si igual a 1 item present, igual a 0 no present
+
+        //                //Recorrido per trobar la info del item-field
+        //                DataItem Valorant = new DataItem();
+        //                int ii = 0;
+        //                bool E = false;
+        //                while ((ii < ItemsCatInfo.ItemsCat.Count()) && (E == false))
+        //                {
+        //                    if (ItemsCatInfo.ItemsCat[ii].FRN_B == bit)
+        //                    {
+        //                        Valorant = ItemsCatInfo.ItemsCat[ii];
+        //                        E = true;
+        //                    }
+        //                    ii++;    
+        //                }
+
+        //                if (Valor == '1') //Item present al data field, procedim a guardarho a la nostra llista local
+        //                {
+        //                    DataField New = new DataField();
+        //                    New.Info = Valorant;
+
+        //                    int MaxOct = New.Info.Len; //Longitud de les dades del item, 0 variable major de 100 repetitiu. 
+        //                    if (MaxOct > 100)//Repetitiu
+        //                    {
+        //                        byte Evaluat = Bytes.Dequeue();
+        //                        New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
+
+        //                        int repeticions = Convert.ToInt32(Evaluat);
+        //                        int i = 0;
+        //                        while (i < repeticions)
+        //                        {
+        //                            New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
+        //                            i++;
+        //                        }
+        //                    }
+        //                    else if (MaxOct == 0)//variable
+        //                    {
+        //                        if (Valorant.DataItemID[1] == "295")
+        //                        {
+        //                            string TOTAL = "";
+        //                            bool DataFieldB = true;
+        //                            while (DataFieldB == true)
+        //                            {
+        //                                byte Evaluat = Bytes.Dequeue();
+        //                                New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
+
+        //                                //Mirem si segueix o no, 0 no segueix 1 si.
+        //                                string EvaString = Convert.ToString(Evaluat, 2).PadLeft(8, '0');
+        //                                TOTAL = "" + TOTAL + "" + EvaString + "";
+        //                                char[] EvaChar = EvaString.ToCharArray();
+        //                                if (EvaChar[7] == '0')
+        //                                    DataFieldB = false;
+        //                            }
+        //                            //Ara ja tenim el FSPEL del item 295, mirem quants datafields te.
+        //                            char[] TotChar = TOTAL.ToCharArray();
+        //                            int k = 0;
+        //                            int instant = 1;
+        //                            while (k < TotChar.Count())
+        //                            {
+        //                                if (TotChar[k] == '1')
+        //                                    if(k != (8*instant)-1)
+        //                                        if(Bytes.Count!= 0)
+        //                                            New.Octets.Enqueue(Bytes.Dequeue());
+        //                                k++;
+        //                            }
+        //                        }
+        //                        else
+        //                        {
+        //                            bool DataFieldB = true;
+        //                            while (DataFieldB == true)
+        //                            {
+        //                                byte Evaluat = Bytes.Dequeue();
+        //                                New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
+
+        //                                //Mirem si segueix o no, 0 no segueix 1 si.
+        //                                string EvaString = Convert.ToString(Evaluat, 2).PadLeft(8, '0');
+        //                                char[] EvaChar = EvaString.ToCharArray();
+        //                                if (EvaChar[7] == '0')
+        //                                    DataFieldB = false;
+        //                            }
+        //                        }
+        //                    }
+        //                    else//limitat
+        //                    {
+        //                        int i = 0;
+        //                        while (i < MaxOct)
+        //                        {
+        //                            New.Octets.Enqueue(Bytes.Dequeue());
+        //                            i++;
+        //                        }
+        //                    }
+        //                    //Deocodifiquem info del data field.
+        //                    New.Decodificar();
+        //                    //Afegim el DataField creat a la nostra llista de datafields
+        //                    DataFields.Add(New);
+        //                }
+        //            }
+        //            else
+        //            {
+        //                oct++;
+        //            }
+                        
+        //            bit++;
+        //        }
+
+        //        GetFrom();
+        //        GetIDandV();
+        //        GetTargetID();
+        //    }
+        //}
 
         //A partir del DataField adecuat obté l'origen del DataBloc
         private void GetFrom()

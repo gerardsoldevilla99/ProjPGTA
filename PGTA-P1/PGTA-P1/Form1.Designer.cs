@@ -84,6 +84,7 @@ namespace PGTA_P1
             this.label9 = new System.Windows.Forms.Label();
             this.pictureBox5 = new System.Windows.Forms.PictureBox();
             this.DataInf = new System.Windows.Forms.Label();
+            this.Export = new System.Windows.Forms.Button();
             this.BarraSuperior.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox8)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -267,6 +268,7 @@ namespace PGTA_P1
             // 
             // TextVisorPanel
             // 
+            this.TextVisorPanel.Controls.Add(this.Export);
             this.TextVisorPanel.Controls.Add(this.TargetsShow);
             this.TextVisorPanel.Controls.Add(this.TargetBTN);
             this.TextVisorPanel.Controls.Add(this.BuscarBTN);
@@ -761,6 +763,16 @@ namespace PGTA_P1
             this.DataInf.TabIndex = 8;
             this.DataInf.Text = "No data loaded";
             // 
+            // Export
+            // 
+            this.Export.Location = new System.Drawing.Point(1162, 509);
+            this.Export.Name = "Export";
+            this.Export.Size = new System.Drawing.Size(94, 23);
+            this.Export.TabIndex = 15;
+            this.Export.Text = "Export Target";
+            this.Export.UseVisualStyleBackColor = true;
+            this.Export.Click += new System.EventHandler(this.Export_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -886,6 +898,7 @@ namespace PGTA_P1
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.PictureBox pictureBox10;
         private System.Windows.Forms.DataGridView TargetsShow;
+        private System.Windows.Forms.Button Export;
     }
 }
 

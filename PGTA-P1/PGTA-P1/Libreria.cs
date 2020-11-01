@@ -30,91 +30,51 @@ namespace PGTA_P1
         public List<DataField> DataFields = new List<DataField>();
 
         CatLib ItemsCatInfo;
-        public string From = "No Data"; //ADS-B, SMR, otro
-        public string ID = "No Data";
-        string Vehicle = "No Data";
-        public string TargetID;
+        public string From = "-"; 
+        public string T_ID = "-"; //ADS-B <--> Multi
+        public string T_Number = "-"; //ADS-B <--> SMR, items de sistema
+        public string Vehicle = "No Data";
+        
 
-        //A part de construir el DataBlock s'encarrega de repartir la info binaria en cada DataField
         public DataBlock(Queue<byte> Bytes, CatLib[] Categories, int id)
         {
-            if (Bytes.Count != 0)
+            //Dades inicials
+            this.ID_Intern = Convert.ToString(id);
+            this.Original = Bytes.ToList();
+            this.Cat = Convert.ToString(Bytes.Dequeue());
+
+            if (Cat == Convert.ToString(Categories[0].Num))
+                ItemsCatInfo = Categories[0];
+            else
+                ItemsCatInfo = Categories[1];
+
+            this.Long[0] = Bytes.Dequeue();
+            this.Long[1] = Bytes.Dequeue();
+
+            //Formem FSPEL
+            SetFSPEL(Bytes);
+
+            //Identifiquem DataItems en cada DataField, assignem els octets indicats en cada cas i decodifiquem.
+            char[] EvaluarFSPEL = FSPEL.ToCharArray();
+            int NumEnFSPEL = 0;
+            while (NumEnFSPEL < EvaluarFSPEL.Count())
             {
-                this.ID_Intern = Convert.ToString(id);
-                this.Original = Bytes.ToList();
-                this.Cat = Convert.ToString(Bytes.Dequeue());
-
-                if (Cat == Convert.ToString(Categories[0].Num))
-                    ItemsCatInfo = Categories[0];
-                else
-                    ItemsCatInfo = Categories[1];
-
-                this.Long[0] = Bytes.Dequeue();
-                this.Long[1] = Bytes.Dequeue();
-
-                //Proces de set del FSPEL.
-                bool FSPEL_Control = true;
-                while (FSPEL_Control == true)
+                if (EvaluarFSPEL[NumEnFSPEL] == '1')
                 {
-                    if (FSPEL_Control == true)
+                    //Busquem dataItem corresponent
+                    int NumDataItem = 0;
+                    bool e = false;
+                    DataField New = new DataField();
+                    while ((NumDataItem < ItemsCatInfo.ItemsCat.Count())&&(e == false))
                     {
-                        byte New = Bytes.Dequeue();
-                        string ByteString = Convert.ToString(New, 2).PadLeft(8, '0');
-                        FSPEL = "" + FSPEL + "" + ByteString + ""; //Unim FSPEL
-
-                        //Mirem si l'ultim bit es un 1 o un 0.
-                        char[] Bits = ByteString.ToCharArray();
-                        if (Bits[7] == '0')
-                            FSPEL_Control = false;
-                    }
-                }
-
-                //Proces de set dels DataFields. Primer de tot hem d'analitzar el FSPEL, despres amb la info extreta dels DataItems creem dataFields.
-                char[] Bitss = FSPEL.ToCharArray();
-                int bit = 0;
-                int oct = 1;
-                while (bit < Bitss.Count())
-                {
-                    if (bit != ((8 * oct) - 1)) //Si el bit no es un FX
-                    {
-                        char Valor = Bitss[bit]; //Si igual a 1 item present, igual a 0 no present
-
-                        //Recorrido per trobar la info del item-field
-                        DataItem Valorant = new DataItem();
-                        int ii = 0;
-                        bool E = false;
-                        while ((ii < ItemsCatInfo.ItemsCat.Count()) && (E == false))
+                        if (ItemsCatInfo.ItemsCat[NumDataItem].FRN == NumEnFSPEL)
                         {
-                            if (ItemsCatInfo.ItemsCat[ii].FRN_B == bit)
-                            {
-                                Valorant = ItemsCatInfo.ItemsCat[ii];
-                                E = true;
-                            }
-                            ii++;    
-                        }
+                            New.Info = ItemsCatInfo.ItemsCat[NumDataItem];
 
-                        if (Valor == '1') //Item present al data field, procedim a guardarho a la nostra llista local
-                        {
-                            DataField New = new DataField();
-                            New.Info = Valorant;
-
-                            int MaxOct = New.Info.Len; //Longitud de les dades del item, 0 variable major de 100 repetitiu. 
-                            if (MaxOct > 100)//Repetitiu
+                            //Assignem octets corresponents al dataField
+                            if (New.Info.Len == 0) //Variable
                             {
-                                byte Evaluat = Bytes.Dequeue();
-                                New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
-
-                                int repeticions = Convert.ToInt32(Evaluat);
-                                int i = 0;
-                                while (i < repeticions)
-                                {
-                                    New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
-                                    i++;
-                                }
-                            }
-                            else if (MaxOct == 0)//variable
-                            {
-                                if (Valorant.DataItemID[1] == "295")
+                                if (New.Info.DataItemID[1] == "295")
                                 {
                                     string TOTAL = "";
                                     bool DataFieldB = true;
@@ -137,8 +97,8 @@ namespace PGTA_P1
                                     while (k < TotChar.Count())
                                     {
                                         if (TotChar[k] == '1')
-                                            if(k != (8*instant)-1)
-                                                if(Bytes.Count!= 0)
+                                            if (k != (8 * instant) - 1)
+                                                if (Bytes.Count != 0)
                                                     New.Octets.Enqueue(Bytes.Dequeue());
                                         k++;
                                     }
@@ -159,36 +119,69 @@ namespace PGTA_P1
                                     }
                                 }
                             }
-                            else//limitat
+                            else if (New.Info.Len > 100) //Repetitiu
+                            {
+                                byte Evaluat = Bytes.Dequeue();
+                                New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
+
+                                int repeticions = Convert.ToInt32(Evaluat);
+                                int i = 0;
+                                while (i < repeticions)
+                                {
+                                    New.Octets.Enqueue(Evaluat); //Afegim al nostra DataField
+                                    i++;
+                                }
+                            }
+                            else //Fixe
                             {
                                 int i = 0;
-                                while (i < MaxOct)
+                                while (i < New.Info.Len)
                                 {
                                     New.Octets.Enqueue(Bytes.Dequeue());
                                     i++;
                                 }
                             }
+
                             //Deocodifiquem info del data field.
                             New.Decodificar();
                             //Afegim el DataField creat a la nostra llista de datafields
                             DataFields.Add(New);
+
+                            e = true;
                         }
+                        else
+                            NumDataItem++;
                     }
-                    else
-                    {
-                        oct++;
-                    }
-                        
-                    bit++;
                 }
 
-                GetFrom();
-                GetIDandV();
-                GetTargetID();
+                NumEnFSPEL++;
+            }
+
+            //Adquirim dades de primer orde
+            GetFrom();
+            GetID();
+            GetVehicle();
+        }
+
+        private void SetFSPEL(Queue<byte> Bytes)
+        {
+            bool FSPEL_Control = true;
+            while (FSPEL_Control == true)
+            {
+                if (FSPEL_Control == true)
+                {
+                    byte New = Bytes.Dequeue();
+                    string ByteString = Convert.ToString(New, 2).PadLeft(8, '0');
+                    FSPEL = "" + FSPEL + "" + ByteString + ""; //Unim FSPEL
+
+                    //Mirem si l'ultim bit es un 1 o un 0.
+                    char[] Bits = ByteString.ToCharArray();
+                    if (Bits[7] == '0')
+                        FSPEL_Control = false;
+                }
             }
         }
 
-        //A partir del DataField adecuat obté l'origen del DataBloc
         private void GetFrom()
         {
             int c = DataFields.Count();
@@ -208,6 +201,16 @@ namespace PGTA_P1
                         else if (H == "TYP: PSR")
                             this.From = "SMR";
                     }
+                    else if (Evaluat.Info.DataItemID[1] == "010")
+                    {
+                        string V = Evaluat.DeCode[0];
+                        string[] H = V.Split(',');
+                        if (H[1] == " SIC: 107")
+                            this.From = "Multi.";
+                        else if (H[1] == " SIC: 7")
+                            this.From = "SMR";
+                        e = true;
+                    }
                     i++;
                 }
                 else 
@@ -220,96 +223,80 @@ namespace PGTA_P1
             }
         }
 
-        //Busca en els dataItems indicats un identificador del datablock (T. Addres o T. Identification), també busca el tipus de vehicle.
-        private void GetIDandV()
+        private void GetID()
         {
-            //ID
             int c = DataFields.Count();
-            int i = 0; bool e = false;
-            while ((i < c) && (e == false))
+            int i = 0; 
+            bool e = false;
+            if (From == "ADS-B")
             {
-                DataField Evaluat = DataFields[i];
-                if (Cat == "10")
-                {
-                    if (Evaluat.Info.DataItemID[1] == "245")
-                    {
-                        e = true;
-                        this.ID = Evaluat.DeCode[1];
-                    }
-                }
-                else
-                {
-                    if (Evaluat.Info.DataItemID[1] == "170")
-                    {
-                        e = true;
-                        this.ID = Evaluat.DeCode[0];
-                    }
-                }
-                i++;
-            }
-            if (e == false) 
-            {
-                i = 0;
                 while ((i < c) && (e == false))
                 {
                     DataField Evaluat = DataFields[i];
-                    if (Cat == "10")
+
+                    if (Evaluat.Info.DataItemID[1] == "161")
                     {
-                        if (Evaluat.Info.DataItemID[1] == "220")
-                        {
-                            e = true;
-                            this.ID = Evaluat.DeCode[0];
-                        }
+                        T_Number = Evaluat.DeCode[0];
                     }
-                    else
+                    else if (Evaluat.Info.DataItemID[1] == "170")
                     {
-                        if (Evaluat.Info.DataItemID[1] == "080")
-                        {
-                            e = true;
-                            this.ID = Evaluat.DeCode[0];
-                        }
+                        T_ID = Evaluat.DeCode[0];
+                        e = true;
+                    }
+
+                    i++;
+                }
+            }
+            else if (From == "Multi.")
+            {
+                while ((i < c) && (e == false))
+                {
+                    DataField Evaluat = DataFields[i];
+
+                    if (Evaluat.Info.DataItemID[1] == "245")
+                    {
+                        T_ID = Evaluat.DeCode[1];
+                        e = true;
+                    }
+                    else if (Evaluat.Info.DataItemID[1] == "161")
+                    {
+                        T_Number = Evaluat.DeCode[0];
+                    }
+                    else if ((Evaluat.Info.DataItemID[1] == "000") && (Evaluat.DeCode[0] != "Target Report"))
+                    {
+                        T_Number = Evaluat.DeCode[0];
+                        e = true;
                     }
                     i++;
                 }
-                if (e == false)
+            }
+            else if (From == "SMR")
+            {
+                while ((i < c) && (e == false))
                 {
-                    i = 0;
-                    while ((i < c) && (e == false))
+                    DataField Evaluat = DataFields[i];
+
+                    if (Evaluat.Info.DataItemID[1] == "161")
                     {
-                        DataField Evaluat = DataFields[i];
-                        if (Cat == "10")
-                        {
-                            if (Evaluat.Info.DataItemID[1] == "161")
-                            {
-                                e = true;
-                                this.ID = Evaluat.DeCode[0];
-                            }
-                        }
-                        i++;
+                        T_Number = Evaluat.DeCode[0];
+                        e = true;
+                    }
+                    else if ((Evaluat.Info.DataItemID[1] == "000") && (Evaluat.DeCode[0] != "Target Report"))
+                    {
+                        T_Number = Evaluat.DeCode[0];
+                        e = true;
                     }
 
-                    if (e == false) 
-                    {
-                        i = 0;
-                    while ((i < c) && (e == false))
-                    {
-                        DataField Evaluat = DataFields[i];
-                        if (Cat == "10")
-                        {
-                            if (Evaluat.Info.DataItemID[1] == "000")
-                            {
-                                e = true;
-                                this.TargetID = "Not a target";
-                            }
-                        }
-                        i++;
-                    }
-                    }
+                    i++;
                 }
             }
+        }
 
-            //Vehicle
-            i = 0; e = false;
+        private void GetVehicle()
+        {
+            int c = DataFields.Count();
+            int i = 0; 
+            bool e = false;
             while ((i < c) && (e == false))
             {
                 DataField Evaluat = DataFields[i];
@@ -331,45 +318,17 @@ namespace PGTA_P1
                 }
                 i++;
             }
-
         }
 
-        private void GetTargetID()
-        {
-            int c = DataFields.Count();
-            int i = 0; bool e = false;
-            while ((i < c) && (e == false))
-            {
-                DataField Evaluat = DataFields[i];
-                if (Cat == "10")
-                {
-                    if (Evaluat.Info.DataItemID[1] == "220")
-                    {
-                        e = true;
-                        this.TargetID = Evaluat.DeCode[0];
-                    }
-                }
-                else
-                {
-                    if (Evaluat.Info.DataItemID[1] == "080")
-                    {
-                        e = true;
-                        this.TargetID = Evaluat.DeCode[0];
-                    }
-                }
-                i++;
-            }
-        }
-
-        //Vector per moestrar en DatBlocks (DGW)
         public string[] StringLin()
         {
-            string[] Ret = new string[5];
+            string[] Ret = new string[6];
             Ret[0] = Cat;
             Ret[1] = From;
-            Ret[2] = ID;
-            Ret[3] = Vehicle;
-            Ret[4] = ID_Intern;
+            Ret[2] = T_ID;
+            Ret[3] = T_Number;
+            Ret[4] = Vehicle;
+            Ret[5] = ID_Intern;
 
             return Ret;
         }
@@ -3089,38 +3048,233 @@ namespace PGTA_P1
     public class Target
     {
         public List<DataBlock> DataBlocks = new List<DataBlock>();
-        public string ID;
-        string TargetID;
-        string V;
+        public string T_ID = "-";
+        public string T_Number = "-";
+        public string V = "-";
+        public string From;
 
+        public List<Coordenada> Coordenades = new List<Coordenada>();
         public Target(List<DataBlock> DataBlocksList)
         {
             DataBlocks = DataBlocksList;
-            string[] Info = DataBlocks[0].StringLin();
-            ID = Info[2];
-            TargetID = DataBlocks[0].TargetID;
-            V = Info[3];
-            int i = 1; 
-            while((V == "No Data")&&(i<DataBlocks.Count()))
+
+            if(DataBlocksList.Count() != 0)
             {
-                V = DataBlocks[0].StringLin()[3];
+                Bucle_TID();
+                Bucle_TNum();
+                Bucle_Ve();
+                Bucle_From();
+                GetCoordenades();
+            }
+
+            //string[] Info = DataBlocks[0].StringLin();
+            //ID = Info[2];
+            ////TargetID = DataBlocks[0].TargetID;
+            //V = Info[3];
+            //int i = 1; 
+            //while((V == "No Data")&&(i<DataBlocks.Count()))
+            //{
+            //    V = DataBlocks[0].StringLin()[3];
+            //    i++;
+            //}
+
+        }
+
+        private void Bucle_TID()
+        {
+            bool e = false;
+            int i = 0;
+            while ((e == false) && (i < DataBlocks.Count()))
+            {
+                if (DataBlocks[i].T_ID != "-")
+                {
+                    e = true;
+                    T_ID = DataBlocks[i].T_ID;
+                }
                 i++;
             }
-            
+        }
+
+        private void Bucle_TNum()
+        {
+            bool e = false;
+            int i = 0;
+            while ((e == false) && (i < DataBlocks.Count()))
+            {
+                if (DataBlocks[i].T_Number != "-")
+                {
+                    e = true;
+                    T_Number = DataBlocks[i].T_Number;
+                }
+                i++;
+            }
+        }
+
+        private void Bucle_Ve()
+        {
+            bool e = false;
+            int i = 0;
+            while ((e == false) && (i < DataBlocks.Count()))
+            {
+                if (DataBlocks[i].Vehicle != "No Data")
+                {
+                    e = true;
+                    V = DataBlocks[i].Vehicle;
+                }
+                i++;
+            }
+        }
+
+        private void Bucle_From()
+        {
+            bool ADSB = false;
+            bool Multi = false;
+            bool SMR = false;
+            int i = 0;
+            while (((ADSB == false) || (Multi == false) || (SMR == false)) && (i < DataBlocks.Count()))
+            {
+                if (DataBlocks[i].From == "ADS-B")
+                    ADSB = true;
+                else if (DataBlocks[i].From == "Multi.")
+                    Multi = true;
+                else if (DataBlocks[i].From == "SMR")
+                    SMR = true;
+                i++;
+            }
+
+            if (ADSB == true)
+                From = "ADS-B ";
+            if (Multi == true)
+                From = "" + From + "Multi. ";
+            if (SMR == true)
+                From = "" + From + "SMR";
+            if (!SMR && !ADSB && !Multi)
+                From = DataBlocks[0].From;
         }
 
         public Target() { }
 
         public string[] StringLin()
         {
-            string[] Ret = new string[4];
-            Ret[0] = ID;
-            Ret[1] = TargetID;
+            string[] Ret = new string[5];
+            Ret[0] = T_ID;
+            Ret[1] = T_Number;
             Ret[2] = V;
-            Ret[3] = Convert.ToString(DataBlocks.Count());
+            Ret[3] = From;
+            Ret[4] = Convert.ToString(DataBlocks.Count());
 
             return Ret;
         }
+
+        public void GetCoordenades()
+        {
+            foreach (DataBlock DB in DataBlocks)
+            {
+                if (DB.From == "ADS-B")
+                {
+                    string f = "ADS-B";
+                    List<DataField> Encontrado = DB.DataFields.Where(x => x.Info.DataItemID[1] == "131").ToList();
+                    if (Encontrado.Count() != 0)
+                    {
+                        Coordenades.Add(new Coordenada(Encontrado[0].DeCode[0], Encontrado[0].DeCode[2], "WGS", f));
+                    }
+                }
+                else if (DB.From == "Multi.")
+                {
+                    string f = "Multi.";
+                    List<DataField> Encontrado = DB.DataFields.Where(x => x.Info.DataItemID[1] == "042").ToList();
+                    if (Encontrado.Count() != 0)
+                    {
+                        Coordenades.Add(new Coordenada(Encontrado[0].DeCode[0], Encontrado[0].DeCode[1], "X-Y", f));
+                    }
+                }
+                else if (DB.From == "SMR")
+                {
+                    string f = "SMR";
+                    List<DataField> Encontrado = DB.DataFields.Where(x => x.Info.DataItemID[1] == "042").ToList();
+                    if (Encontrado.Count() != 0)
+                    {
+                        Coordenades.Add(new Coordenada(Encontrado[0].DeCode[0], Encontrado[0].DeCode[1], "X-Y", f));
+                    }
+                    else
+                    {
+                        Encontrado = DB.DataFields.Where(x => x.Info.DataItemID[1] == "040").ToList();
+                        if (Encontrado.Count() != 0)
+                        {
+                            Coordenades.Add(new Coordenada(Encontrado[0].DeCode[0], Encontrado[0].DeCode[1], "POL", f));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public class Coordenada
+    {
+        string Lon;
+        string Lat;
+
+        string x;
+        string y;
+
+        string r;
+        string alpha;
+
+        string type;
+        string from;
+
+        public Coordenada(string a, string b, string t, string f)
+        {
+            if (t == "WGS")
+            {
+                Lon = a;
+                Lat = b;
+                type = t;
+                from = f;
+            }
+            else if (t == "X-Y")
+            {
+                x = a;
+                y = b;
+                type = t;
+                from = f;
+            }
+            else
+            {
+                r = a;
+                alpha = b;
+                type = t;
+                from = f;
+            }
+        }
+
+        public string[] Retrun()
+        {
+            string[] v = new string[4];
+            if (type == "WGS")
+            {
+                v[0] = Lon;
+                v[1] = Lat;
+                v[2] = type;
+                v[3] = from;
+            }
+            else if (type == "X-Y")
+            {
+                v[0] = x;
+                v[1] = y;
+                v[2] = type;
+                v[3] = from;
+            }
+            else 
+            {
+                v[0] = r;
+                v[1] = alpha;
+                v[2] = type;
+                v[3] = from;
+            }
+
+            return v;
+         }
     }
 
     //A la espera de ser obsolet
